@@ -1,0 +1,4 @@
+.vscode/
+.continue/
+*.json.bak
+backup_*.json

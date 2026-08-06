@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- ============================================================
+    SECTION 1: HEAD & META TAGS
+    ============================================================ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="pageTitle">Point de Vente</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+    
+     <!-- CSS -->
+           <link rel="stylesheet" href="style.css">
+           <link rel="stylesheet" href="modern-enhancements.css">
+            <link rel="stylesheet" href="modern-views.css">
+            <link rel="stylesheet" href="classic-pos.css">
+     <style>
+         .toggle-buttons {
+            
+             display: flex;
+             
+             gap: 8px;
+         }
+         .toggle-buttons .btn.active {
+             font-weight: bold;
+             box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+         }
+     </style>
+<base target="_blank">
+</head>
+<body>
+
+    <!-- ============================================================
+    THEME DECOR — structural ornaments injected by js/themes.js
+    ============================================================ -->
+    <div id="theme-decor" aria-hidden="true"></div>
+
+    <!-- ============================================================
+    LOCK SCREEN
+    ============================================================ -->
+    <div id="lock-screen" class="lock-screen">
+        <div class="lock-content">
+            <h2 style="margin-bottom:4px;" data-i18n="appName">🧵 SamtexChabet</h2>
+            <p id="lock-subtitle" style="margin-bottom:24px;color:rgba(255,255,255,0.7);" data-i18n="lockTitle">Sélectionnez votre profil</p>
+            <div id="user-grid" class="user-grid"></div>
+            <div id="pin-input-section" style="display:none;">
+                <p id="selected-user-name" style="font-size:18px;font-weight:600;margin-bottom:12px;"></p>
+                <div class="pin-display" id="pin-display">○ ○ ○ ○</div>
+                <div class="pin-pad" id="lock-pin-pad"></div>
+                <div id="pin-error" class="pin-error"></div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;">
+                    <button class="btn btn-sm" onclick="document.getElementById('pin-input-section').style.display='none';document.getElementById('user-grid').style.display='';" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" data-i18n="back">← Retour</button>
+                    <button class="btn btn-sm" onclick="handleForgotPin()" style="background:none;color:rgba(255,255,255,0.6);border:none;text-decoration:underline;font-size:12px;cursor:pointer;" data-i18n="forgotPassword">🔑 Mot de passe oublié ?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    HIDDEN SCANNER RECEIVER
+    ============================================================ -->
+    <input type="text" id="scanner-receiver" autocomplete="off" aria-hidden="true">
+
+    <!-- ============================================================
+    SECTION 3: HEADER / NAVIGATION
+    ============================================================ -->
+    <header class="app-header">
+        <div class="brand">
+            <span data-i18n="appName">🧵 SamtexChabet</span>
+            <span class="indicator" data-i18n-title="scannerIndicatorTitle" title="Scanner prêt - Double-clic pour réinitialiser"></span>
+            <button id="btn-structure-collapse" class="structure-collapse-btn" type="button" title="Réduire / étendre la barre latérale" onclick="toggleStructureCollapse()">☰</button>
+        </div>
+        <nav class="nav-tabs" role="tablist">
+            <button class="nav-tab active" data-view="checkout" role="tab" title="Caisse">💳 Caisse</button>
+            <button class="nav-tab" data-view="inventory" role="tab" title="Stock">📦 Stock</button>
+            <button class="nav-tab" data-view="customers" role="tab" title="Clients">👤 Clients</button>
+            <button class="nav-tab" data-view="suppliers" role="tab" title="Fournisseurs">🏷️ Fournisseurs</button>
+            <button class="nav-tab" data-view="analytics" role="tab" title="Analytics">📊 Analytics</button>
+            <button class="nav-tab" data-view="promotions" role="tab" title="Promotions">🏷️ Promotions</button>
+            <button class="nav-tab" data-view="users" role="tab" title="Utilisateurs">🗣️ Utilisateurs</button>
+        </nav>
+        <div class="header-actions">
+            <span id="clock-display" class="clock-display">--:--:--</span>
+            <button id="btn-user-switch" class="header-btn header-btn-wide" title="Changer d'utilisateur" data-i18n-title="userSwitchTitle">
+                👤 <span id="current-user-name"></span>
+            </button>
+            <button id="btn-toggle-backup" class="header-btn-icon" title="💾 Sauvegarde automatique activée - Cliquez pour désactiver" data-i18n-title="backupAutoEnabled">
+                💾<span id="backup-status-dot" class="status-dot"></span>
+            </button>
+            <button id="btn-settings-header" class="header-btn" title="⚙️ Paramètres" data-i18n-title="navSettings">⚙️</button>
+        </div>
+    </header>
+
+    <!-- ============================================================
+    SECTION 4: MAIN CONTENT CONTAINER
+    ============================================================ -->
+    <div class="main-container">
+
+        <!-- ============================================================
+        SECTION 5: VIEW - CHECKOUT (CAISSE) - UPDATED WITH SCROLLABLE STRUCTURE
+        ============================================================ -->
+        <section id="view-checkout" class="view active" role="tabpanel">
+            <!-- SECTION 5.0: CLASSIC POS TERMINAL (structure-classic) -->
+            <div class="classic-pos" id="classic-pos">
+                <div class="classic-titlebar">
+                    <span class="classic-titlebar-text">🧵 Point de Vente — POS TERMINAL</span>
+                    <span class="classic-titlebar-clock" id="classic-clock">00:00:00</span>
+                </div>
+
+                <div class="classic-body">
+                    <!-- COLONNE GAUCHE : panier + produits rapides -->
+                    <div class="classic-col-left">
+                        <div class="classic-panel classic-cart-panel">
+                            <div class="classic-panel-caption" data-i18n="classicCartTitle">Panier — Caisse</div>
+                            <div class="classic-cart-table-wrap">
+                                <table class="classic-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:26px;">#</th>
+                                            <th data-i18n="product">Produit</th>
+                                            <th style="width:64px;" data-i18n="qty">Qté</th>
+                                            <th style="width:74px;" data-i18n="price">Prix</th>
+                                            <th style="width:86px;" data-i18n="classicReducedPrice">Réduit</th>
+                                            <th style="width:80px;" data-i18n="subtotal">Sous-total</th>
+                                            <th style="width:30px;">✕</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="classic-cart-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="classic-nav-controls">
+                                <button class="classic-nav-btn" id="classic-nav-up" type="button" title="↑">▲</button>
+                                <button class="classic-nav-btn" id="classic-nav-down" type="button" title="↓">▼</button>
+                                <span class="classic-row-indicator" id="classic-row-indicator">1/1</span>
+                                <button class="classic-nav-btn" id="classic-nav-edit" type="button" data-i18n="classicEdit">Éditer</button>
+                                <button class="classic-nav-btn" id="classic-nav-del" type="button" data-i18n="classicDelete">Effacer</button>
+                            </div>
+                        </div>
+
+                        <div class="classic-panel classic-quick-panel" id="classic-quick-panel" hidden>
+                            <div class="classic-panel-caption" data-i18n="classicQuickCart">⚡ Client rapide</div>
+                            <div class="classic-cart-table-wrap">
+                                <table class="classic-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:26px;">#</th>
+                                            <th data-i18n="product">Produit</th>
+                                            <th style="width:64px;" data-i18n="qty">Qté</th>
+                                            <th style="width:74px;" data-i18n="price">Prix</th>
+                                            <th style="width:86px;" data-i18n="classicReducedPrice">Réduit</th>
+                                            <th style="width:80px;" data-i18n="subtotal">Sous-total</th>
+                                            <th style="width:30px;">✕</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="classic-quick-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="classic-quick-total">
+                                <span data-i18n="classicQuickTotal">Total rapide:</span>
+                                <strong id="classic-quick-total">0.00</strong>
+                            </div>
+                        </div>
+
+                        <div class="classic-panel classic-cat-panel">
+                            <div class="classic-panel-caption" data-i18n="classicCatTitle">Produits rapides</div>
+                            <div class="classic-cat-scroll">
+                                <div class="classic-cat-grid" id="classic-cat-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLONNE DROITE : résumé + clavier -->
+                    <div class="classic-col-right">
+                        <div class="classic-panel classic-summary-panel">
+                            <div class="classic-this-sale">
+                                <div class="classic-this-sale-label" data-i18n="classicThisSale">Montant de la vente</div>
+                                <div class="classic-this-sale-amount" id="classic-sale-amount">0.00</div>
+                            </div>
+                            <div class="classic-meta-grid">
+                                <div class="classic-meta-field">
+                                    <label for="classic-tendered" data-i18n="classicTendered">Tendue:</label>
+                                    <input type="text" id="classic-tendered" value="0.00" inputmode="decimal" autocomplete="off">
+                                </div>
+                                <div class="classic-meta-field">
+                                    <label for="classic-last-sale" data-i18n="classicLastSale">Dernière vente:</label>
+                                    <input type="text" id="classic-last-sale" readonly>
+                                </div>
+                                <div class="classic-meta-field">
+                                    <label for="classic-change" data-i18n="classicChange">Monnaie:</label>
+                                    <input type="text" id="classic-change" readonly>
+                                </div>
+                            </div>
+                            <div class="classic-metrics">
+                                <div class="classic-metric classic-metric-tendered"><span data-i18n="classicTendered">Tendue</span><strong id="classic-metric-tendered">0.00</strong></div>
+                                <div class="classic-metric classic-metric-lastsale"><span data-i18n="classicLastSale">Dernière vente</span><strong id="classic-metric-lastsale">0.00</strong></div>
+                                <div class="classic-metric classic-metric-change"><span data-i18n="classicChange">Monnaie</span><strong id="classic-metric-change">0.00</strong></div>
+                            </div>
+                        </div>
+
+                        <div class="classic-panel classic-keypad-panel">
+                            <div class="classic-functions">
+                                <div class="classic-func-panel" id="classic-func-1"></div>
+                                <div class="classic-func-panel" id="classic-func-2"></div>
+                                <div class="classic-func-panel" id="classic-func-3"></div>
+                            </div>
+                            <div class="classic-pay-row">
+                                <button class="classic-btn-pay" id="classic-btn-pay" type="button" data-i18n="classicPay">PAYER</button>
+                            </div>
+                        </div>
+
+                        <div class="classic-bottom-actions">
+                            <button class="classic-bottom-btn" id="classic-btn-void" type="button" data-i18n="classicVoid">ANN</button>
+                            <button class="classic-bottom-btn" id="classic-btn-print" type="button" data-i18n="classicPrint">IMPRIMER</button>
+                            <button class="classic-bottom-btn" id="classic-btn-ticket" type="button" data-i18n="classicTicket">TICKET</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="checkout-content-stack">
+                <div class="checkout-main-layout">  
+                    <div class="checkout-left">
+                <!-- SECTION 5.1: CHECKOUT HEADER -->
+                <div class="checkout-header">
+                    <div class="customer-selector" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:relative;z-index:50;">
+                        <label for="customer-select" style="font-weight:600;font-size:14px;color:#555;" data-i18n="customer">👤 Client:</label>
+                        <select id="customer-select" style="padding:8px 16px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-size:14px;min-width:220px;font-family:var(--font-family);background:white;transition:var(--transition);cursor:pointer;position:relative;z-index:100;">
+                            <option value="">🔄 Client régulier (sans profil)</option>
+                        </select>
+                        <button class="btn btn-sm btn-primary" id="btn-new-customer" style="flex:0 1 auto;padding:8px 16px;" data-i18n="newCustomer">➕ Nouveau</button>
+                    </div>
+                    
+                    <!-- MANUAL BARCODE ENTRY -->
+                    <div class="manual-barcode-container" style="display:flex;gap:8px;align-items:center;position:relative;">
+                        <input type="text" id="manual-barcode" placeholder="🔍 Code-barres manuel" data-i18n-placeholder="manualBarcodePlaceholder" style="padding:8px 14px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-size:14px;width:180px;font-family:var(--font-family);transition:var(--transition);" autocomplete="off">
+                        <div id="barcode-suggestions" style="position:absolute;top:100%;left:0;right:0;background:white;border:2px solid #e0e0e0;border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:200px;overflow-y:auto;z-index:1000;display:none;box-shadow:var(--shadow);"></div>
+                        <button class="btn btn-sm btn-primary" id="btn-manual-scan" style="flex:0 1 auto;padding:8px 16px;" data-i18n="btnAdd">🔍 Ajouter</button>
+                    </div>
+                    
+                    <div class="scanner-status">
+                        <span class="scanner-led"></span>
+                        <span class="scanner-text" data-i18n="scannerReady">Scanner actif</span>
+                        <button onclick="manualBackup()" style="background:none;border:none;cursor:pointer;font-size:16px;margin-left:8px;" title="Télécharger la sauvegarde" data-i18n-title="downloadBackup">💾</button>
+                    </div>
+                    <button class="btn btn-warning btn-sm" id="btn-quick-customer-mode" data-i18n="quickClient">⚡ Client rapide</button>
+                </div>
+
+                <!-- SECTION 5.2: SPLIT CART VIEW -->
+                <div class="checkout-cart-split">
+                    <div class="cart-split-panel main-panel">
+                        <div class="cart-panel-header">
+                            <h4 data-i18n="mainCart">🛒 Panier principal</h4>
+                            <span id="main-cart-total" class="cart-panel-total">0.00 DA</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="product">Produit</th>
+                                        <th data-i18n="barcode">Code-barres</th>
+                                        <th data-i18n="unit">Unité</th>
+                                        <th data-i18n="price">Prix (DA)</th>
+                                        <th data-i18n="reducedPrice">Prix réduit</th>
+                                        <th data-i18n="qty">Qté</th>
+                                        <th data-i18n="subtotal">Sous-total (DA)</th>
+                                        <th style="width:40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cart-table-body">
+                                    <tr>
+                                        <td colspan="8" class="empty-cart-msg" data-i18n="emptyCart">Aucun article dans le panier — Scannez un code-barres pour commencer</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="cart-split-panel quick-panel">
+                        <div class="cart-panel-header">
+                            <h4 data-i18n="quickClient">⚡ Client rapide</h4>
+                            <span id="quick-cart-total" class="cart-panel-total">0.00 DA</span>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-i18n="product">Produit</th>
+                                        <th data-i18n="barcode">Code-barres</th>
+                                        <th data-i18n="unit">Unité</th>
+                                        <th data-i18n="price">Prix (DA)</th>
+                                        <th data-i18n="reducedPrice">Prix réduit</th>
+                                        <th data-i18n="qty">Qté</th>
+                                        <th data-i18n="subtotal">Sous-total (DA)</th>
+                                        <th style="width:40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quick-cart-table-body">
+                                    <tr>
+                                        <td colspan="8" class="empty-cart-msg" data-i18n="quickCartEmpty">Aucun article rapide pour le moment</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <!-- SECTION 5.3: CHECKOUT RIGHT - CONTENU SÉPARÉ, SANS SCROLL -->
+                <div class="checkout-right">
+                    <!-- BLOC: RÉSUMÉ DE LA TRANSACTION -->
+                    <div class="summary-block" id="block-summary">
+                        <div class="summary-block-title" data-i18n="transactionSummary">🧾 Résumé de la Transaction</div>
+                        <!-- LAST SCANNED ITEM -->
+                        <div class="last-scanned-item" id="last-scanned-item">
+                            <span class="empty" data-i18n="waitingScan">📦 En attente d'un scan...</span>
+                        </div>
+
+                        <div class="customer-info" id="checkout-customer-info">
+                            <span style="font-size:13px;color:#888;"><span data-i18n="customer">Client:</span> <strong id="checkout-customer-name" data-i18n="regularCustomerShort">Client régulier</strong></span>
+                        </div>
+
+                        <!-- TOTALS -->
+                        <div class="totals-row">
+                            <span class="label" data-i18n="subtotalLabel">💰 Sous-total</span>
+                            <span class="value" id="checkout-subtotal">0.00 DA</span>
+                        </div>
+                        <div class="totals-row" id="checkout-discount-row" style="display:none;">
+                            <span class="label" data-i18n="discountPromo">🏷️ Remise (Promo)</span>
+                            <span class="value" id="checkout-discount" style="color:var(--danger);">-0.00 DA</span>
+                        </div>
+                        <div class="totals-row grand">
+                            <span class="label" data-i18n="total">💳 Total</span>
+                            <span class="value" id="checkout-grandtotal">0.00 DA</span>
+                        </div>
+                    </div>
+
+                    <!-- BLOC: PAIEMENT -->
+                    <div class="summary-block" id="block-payment">
+                        <div class="summary-block-title" data-i18n="paymentSection">💵 Paiement</div>
+                        <div class="payment-section">
+                            <div class="payment-row">
+                                <label for="amount-paid" data-i18n="amountPaid">Montant payé (DA):</label>
+                                <input type="number" id="amount-paid" value="0" step="0.01" min="0">
+                            </div>
+                            <div class="payment-row">
+                                <span class="label" data-i18n="remaining">Reste à payer:</span>
+                                <span class="value" id="remaining-amount">0.00 DA</span>
+                            </div>
+                        </div>
+
+                        <!-- PAYMENT STATUS -->
+                        <div class="payment-status-display">
+                            <span data-i18n="paymentStatus">Statut de paiement:</span>
+                            <span class="status paid" id="payment-status-display" data-i18n="paid">✅ Payé</span>
+                        </div>
+
+                        <!-- CART COUNT -->
+                        <div class="cart-count-display">
+                            <span id="cart-count">0</span> <span data-i18n="itemsInCart">articles dans le panier</span>
+                        </div>
+                    </div>
+
+                </div>
+                </div>
+
+                <!-- CHECKOUT ACTION BAR - FULL WIDTH, ALWAYS VISIBLE -->
+                <div class="checkout-action-bar">
+                    <!-- ACTION BUTTONS -->
+                    <div class="action-buttons">
+                        <button class="btn btn-success" id="btn-complete-transaction" data-i18n="completeSale">✅ Finaliser</button>
+                        <button class="btn btn-accent" id="btn-print-receipt" data-i18n="btnPrint">🖨️ Imprimer</button>
+                        <button class="btn btn-secondary" id="btn-clear-cart" data-i18n="clear">🗑 Vider</button>
+                    </div>
+
+                    <!-- Printer status -->
+                    <div class="printer-status">
+                        <span data-i18n="printer">🖨️ Imprimante:</span>
+                        <span class="status" id="printer-status" data-i18n="printerReady">✅ Prêt</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        SECTION 5.9: HIDDEN RECEIPT
+        ============================================================ -->
+        <div id="receipt-to-print" style="display:none;position:absolute;left:-9999px;top:0;width:250px;background:white;padding:10px;"></div>
+
+        <!-- ============================================================
+        SECTION 6: VIEW - INVENTORY (STOCK)
+        ============================================================ -->
+        <section id="view-inventory" class="view" role="tabpanel">
+            <!-- SECTION 6.1: INVENTORY LEFT -->
+            <div class="inventory-left">
+                <h3 data-i18n="addProduct">➕ Ajouter / Modifier un Produit</h3>
+                <form id="product-form" autocomplete="off">
+                    <div class="form-group">
+                        <label for="form-barcode" data-i18n="barcodeLabel">Code-barres *</label>
+                        <input type="text" id="form-barcode" placeholder="Scanner ou taper le code" data-i18n-placeholder="barcodeScanPlaceholder" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-reference" data-i18n="referenceLabel">Code de référence</label>
+                        <input type="text" id="form-reference" placeholder="ex: REF-001" data-i18n-placeholder="referencePlaceholder">
+                    </div>
+                    <div class="form-group">
+                        <label for="form-name" data-i18n="nameLabel">Nom du produit *</label>
+                        <input type="text" id="form-name" placeholder="ex: Mouchoir 50pcs" data-i18n-placeholder="namePlaceholder" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-category" data-i18n="categoryLabel">Catégorie</label>
+                        <select id="form-category">
+                            <option value="" data-i18n="selectCategoryPrompt">-- Sélectionner une catégorie --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-unit" data-i18n="unitLabel">Unité *</label>
+                        <select id="form-unit" required>
+                            <option value="pièce" data-i18n="pieceOption">Pièce</option>
+                            <option value="mètre" data-i18n="meterOption">Mètre</option>
+                        </select>
+                    </div>
+
+                    <!-- Add this AFTER the Prix field and BEFORE Stock -->
+                    <div class="form-group">
+                        <label for="form-purchase-price" data-i18n="purchasePriceLabel">Prix d'achat (DA) *</label>
+                        <input type="number" id="form-purchase-price" placeholder="0.00" step="0.01" min="0" required>
+                        <span style="font-size:11px;color:#999;" data-i18n="purchasePriceHint">Coût d'achat du produit (pour calculer les bénéfices)</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="form-price" data-i18n="priceLabel">Prix (DA) *</label>
+                            <input type="number" id="form-price" placeholder="0.00" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-stock" data-i18n="stockLabelInput">Stock *</label>
+                            <!-- FIXED: Allow decimal values for stock (important for meter products) -->
+                            <input type="number" id="form-stock" placeholder="0" step="0.01" min="0" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="form-supplier" data-i18n="supplierLabel">Fournisseur</label>
+                            <select id="form-supplier">
+                                <option value="" data-i18n="noSupplier">-- Aucun fournisseur --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="form-min-stock" data-i18n="minStockLabel">Stock minimum</label>
+                            <input type="number" id="form-min-stock" value="5" min="0" step="1">
+                        </div>
+                    </div>
+                    <div class="form-row" id="form-batch-row" style="display:none;">
+                        <div class="form-group">
+                            <label for="form-batch-number" data-i18n="batchNumberLabel">N° de lot</label>
+                            <input type="text" id="form-batch-number" placeholder="LOT-001">
+                        </div>
+                        <div class="form-group">
+                            <label for="form-expiry-date" data-i18n="expiryDateLabel">Date de péremption</label>
+                            <input type="date" id="form-expiry-date">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="form-image" data-i18n="imageLabel">Image du produit</label>
+                        <input type="file" id="form-image" accept="image/jpeg,image/png,image/gif,image/webp">
+                        <div id="form-image-preview" class="image-preview"></div>
+                        <span class="field-hint" data-i18n="imageHint">JPG, PNG, GIF, WebP • Max 2 Mo</span>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                        <button type="submit" class="btn btn-primary" style="flex:2;" data-i18n="save">💾 Enregistrer</button>
+                        <button type="reset" class="btn btn-secondary" style="flex:1;" data-i18n="clearForm">Effacer</button>
+                    </div>
+                    <div id="form-feedback" style="margin-top:12px;font-size:14px;min-height:24px;"></div>
+                </form>
+
+                <!-- CATEGORY MANAGEMENT SECTION -->
+                <div style="margin-top:20px;padding-top:16px;border-top:2px solid #f0f0f0;">
+                    <h4 style="font-size:16px;color:var(--primary);margin-bottom:12px;" data-i18n="categoryManagement">🏷️ Gestion des Catégories</h4>
+                    
+                    <div style="display:flex;gap:10px;margin-bottom:12px;">
+                        <input type="text" id="new-category-input" placeholder="Nom de la nouvelle catégorie" data-i18n-placeholder="newCategoryInputPlaceholder" style="flex:1;padding:10px 14px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-family);transition:var(--transition);">
+                        <button class="btn btn-primary btn-sm" id="btn-add-category" style="flex:0 1 auto;padding:10px 20px;" data-i18n="addCategory">➕ Ajouter</button>
+                    </div>
+                    
+                    <div id="categories-list" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;min-height:40px;">
+                        <span style="color:#999;font-size:13px;" data-i18n="loadingCategories">Chargement des catégories...</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
+                    <button class="btn btn-danger" id="btn-bulk-delete" style="width:100%;" data-i18n="deleteAllProducts">⚠️ Supprimer tous les produits</button>
+                </div>
+            </div>
+
+            <!-- SECTION 6.2: INVENTORY RIGHT -->
+            <div class="inventory-right">
+                <div style="padding:8px 12px;background:#f8f9fa;border-bottom:1px solid #e0e0e0;display:flex;align-items:center;gap:10px;border-radius:12px 12px 0 0;">
+                    <span style="font-size:18px;">🔍</span>
+                    <input type="text" id="inventory-search" placeholder="Rechercher un produit (nom, code-barres, catégorie, référence)..." data-i18n-placeholder="searchProductPlaceholder" style="flex:1;padding:10px 14px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-family);transition:var(--transition);background:white;" autocomplete="off">
+                    <button id="btn-clear-inventory-search" style="padding:8px 14px;background:#eee;border:1px solid #ddd;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;color:#666;display:none;transition:var(--transition);" data-i18n="clearSearch">✕ Effacer</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n="tableImage">Image</th>
+                                <th data-i18n="tableBarcode">Code-barres</th>
+                                <th data-i18n="tableNom">Nom</th>
+                                <th data-i18n="tableCategory">Catégorie</th>
+                                <th data-i18n="tableUnit">Unité</th>
+                                <th data-i18n="tableSalePrice">Prix vente (DA)</th>
+                                <th>
+                                    <span data-i18n="tablePurchasePrice">Prix achat (DA)</span>
+                                    <button id="btn-toggle-prices" onclick="toggleSensitivePrices()" title="Afficher / Masquer les prix sensibles" style="
+                                        background: rgba(255,255,255,0.15);
+                                        border: 1px solid rgba(255,255,255,0.4);
+                                        color: white;
+                                        border-radius: 4px;
+                                        padding: 1px 6px;
+                                        font-size: 13px;
+                                        cursor: pointer;
+                                        margin-left: 6px;
+                                        vertical-align: middle;
+                                        line-height: 1.4;
+                                    ">🔒</button>
+                                </th>
+                                <th data-i18n="tableProfitUnit">Profit/unité</th>
+                                <th data-i18n="tableMargin">Marge</th>
+                                <th data-i18n="tableStock">Stock</th>
+                                <th style="width:100px;" data-i18n="tableActions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-table-body">
+                            <tr>
+                                <td colspan="11" style="text-align:center;color:#999;padding:40px 0;" data-i18n="noProductsInCatalog">Aucun produit dans le catalogue</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="inventory-stats">
+                    <span id="inv-product-count">0 produits</span>
+                    <span id="inv-low-stock-count">0 stock bas</span>
+                    <span id="inv-total-value">0.00 DA valeur totale</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        SECTION 7: VIEW - CUSTOMERS
+        ============================================================ -->
+        <section id="view-customers" class="view" role="tabpanel">
+            <div class="customers-container">
+                <div class="customers-left">
+                    <h3 data-i18n="customerManagement">👤 Gestion des Clients</h3>
+                    <form id="customer-form" autocomplete="off">
+                        <div class="form-group">
+                            <label for="customer-name" data-i18n="fullName">Nom complet *</label>
+                            <input type="text" id="customer-name" placeholder="ex: Fatima Benali" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-phone" data-i18n="phone">Téléphone</label>
+                            <input type="text" id="customer-phone" placeholder="ex: 0555 12 34 56">
+                        </div>
+                        <div class="form-group">
+                            <label for="customer-address" data-i18n="address">Adresse</label>
+                            <input type="text" id="customer-address" placeholder="ex: Rue X, Alger">
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:8px;">
+                            <button type="submit" class="btn btn-primary" style="flex:2;" data-i18n="saveCustomer">💾 Enregistrer le client</button>
+                            <button type="reset" class="btn btn-secondary" style="flex:1;" data-i18n="clearForm">Effacer</button>
+                        </div>
+                        <div id="customer-feedback" style="margin-top:12px;font-size:14px;min-height:24px;"></div>
+                    </form>
+                    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
+                        <button class="btn btn-danger" id="btn-bulk-delete-customers" style="width:100%;" data-i18n="deleteAllCustomers">⚠️ Supprimer tous les clients</button>
+                    </div>
+                </div>
+
+                <div class="customers-right">
+                    <div class="customers-list-wrap">
+                        <div class="search-box">
+                            <input type="text" id="customer-search" placeholder="🔍 Rechercher un client..." data-i18n-placeholder="searchCustomer">
+                        </div>
+                        <div id="customers-list">
+                            <div style="text-align:center;color:#999;padding:40px 0;" data-i18n="noCustomers">Aucun client enregistré</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        SECTION 8: VIEW - SUPPLIERS & PURCHASES
+        ============================================================ -->
+        <section id="view-suppliers" class="view" role="tabpanel">
+            <div class="suppliers-container" style="display:flex;gap:24px;flex-wrap:wrap;">
+                <!-- LEFT: Supplier CRUD -->
+                <div class="suppliers-left" style="flex:1;min-width:300px;">
+                    <h3 style="font-size:18px;color:var(--primary);margin-bottom:16px;" data-i18n="supplierManagement">🏷️ Gestion des Fournisseurs</h3>
+                    <form id="supplier-form" autocomplete="off">
+                        <div class="form-group">
+                            <label for="supplier-name" data-i18n="supplierNameLabel">Nom du fournisseur *</label>
+                            <input type="text" id="supplier-name" placeholder="ex: Import Tlemcen" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="supplier-phone" data-i18n="supplierPhone">Téléphone</label>
+                            <input type="text" id="supplier-phone" placeholder="0555 00 00 00">
+                        </div>
+                        <div class="form-group">
+                            <label for="supplier-address" data-i18n="supplierAddress">Adresse</label>
+                            <input type="text" id="supplier-address" placeholder="ex: Rue Didouche Mourad, Alger">
+                        </div>
+                        <div class="form-group">
+                            <label for="supplier-email" data-i18n="supplierEmail">Email (optionnel)</label>
+                            <input type="email" id="supplier-email" placeholder="contact@fournisseur.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="supplier-nif" data-i18n="supplierNif">NIF / NIS (optionnel)</label>
+                            <input type="text" id="supplier-nif" placeholder="Numéro fiscal" data-i18n-placeholder="supplierNifPlaceholder">
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:8px;">
+                            <button type="submit" class="btn btn-primary" style="flex:2;" id="btn-save-supplier" data-i18n="save">💾 Enregistrer</button>
+                            <button type="reset" class="btn btn-secondary" style="flex:1;" id="btn-reset-supplier" data-i18n="clearForm">Effacer</button>
+                        </div>
+                        <div id="supplier-feedback" style="margin-top:12px;font-size:14px;min-height:24px;"></div>
+                    </form>
+
+                    <!-- LOW STOCK ALERT PANEL -->
+                    <div style="flex:1;display:flex;flex-direction:column;margin-top:24px;padding-top:16px;border-top:2px solid #f0e0e0;">
+                        <h4 style="font-size:16px;color:var(--danger);margin-bottom:12px;" data-i18n="lowStockAlerts">⚠️ Alertes Stock Bas</h4>
+                        <div id="low-stock-panel" style="flex:1;min-height:0;overflow-y:auto;border-radius:8px;border:1px solid #f0e0e0;">
+                            <div style="text-align:center;color:#999;padding:20px;" data-i18n="loading">Chargement...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Supplier List -->
+                <div class="suppliers-right" style="flex:1;min-width:300px;">
+                    <div class="search-box" style="margin-bottom:12px;">
+                        <input type="text" id="supplier-search" placeholder="🔍 Rechercher un fournisseur..." data-i18n-placeholder="supplierSearchPlaceholder" style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-family);">
+                    </div>
+                    <div id="suppliers-list" style="flex:1;min-height:0;overflow-y:auto;border-radius:8px;border:1px solid #e0e0e0;">
+                        <div style="text-align:center;color:#999;padding:20px;" data-i18n="noSuppliers">Aucun fournisseur</div>
+                    </div>
+
+                    <!-- PURCHASE ORDERS (BONS DE RÉCEPTION) -->
+                    <div style="margin-top:24px;padding-top:16px;border-top:2px solid #f0f0f0;">
+                        <h3 style="font-size:18px;color:var(--primary);margin-bottom:16px;" data-i18n="receptionTitle">📦 Bon de Réception</h3>
+                        <form id="reception-form" autocomplete="off">
+                            <div class="form-row">
+                                <div class="form-group" style="flex:2;">
+                                    <label for="reception-supplier" data-i18n="receptionSupplier">Fournisseur *</label>
+                                    <select id="reception-supplier" required>
+                                        <option value="" data-i18n="receptionSelectPrompt">-- Sélectionner --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex:1;">
+                                    <label for="reception-date" data-i18n="receptionDate">Date *</label>
+                                    <input type="date" id="reception-date" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reception-invoice" data-i18n="receptionInvoice">N° Facture / Référence</label>
+                                <input type="text" id="reception-invoice" placeholder="Facture fournisseur (optionnel)" data-i18n-placeholder="receptionInvoicePlaceholder">
+                            </div>
+
+                            <h4 style="font-size:14px;color:#555;margin:12px 0 8px 0;" data-i18n="receptionItems">Articles reçus</h4>
+                            <div id="reception-items-container" style="max-height:250px;overflow-y:auto;border:1px solid #f0f0f0;border-radius:8px;padding:8px;">
+                                <!-- Item rows added dynamically -->
+                            </div>
+                            <div style="display:flex;gap:8px;margin-top:8px;">
+                                <button type="button" class="btn btn-sm btn-primary" id="btn-add-reception-item" style="font-size:12px;" data-i18n="addReceptionItem">➕ Ajouter un article</button>
+                            </div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;">
+                                <div style="font-weight:700;font-size:15px;color:var(--primary);">
+                                    Total: <span id="reception-total">0.00</span> DA
+                                </div>
+                                <button type="submit" class="btn btn-success" id="btn-save-reception" data-i18n="saveReception">✅ Enregistrer la réception</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- PURCHASE HISTORY -->
+                    <div style="margin-top:24px;padding-top:16px;border-top:2px solid #f0f0f0;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <h3 style="font-size:18px;color:var(--primary);" data-i18n="purchaseHistory">📋 Historique des Réceptions</h3>
+                            <div style="display:flex;gap:8px;align-items:center;">
+                                <select id="purchase-filter-supplier" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;">
+                                    <option value="" data-i18n="allSuppliersFilter">Tous les fournisseurs</option>
+                                </select>
+                                <input type="date" id="purchase-filter-from" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;">
+                                <input type="date" id="purchase-filter-to" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;">
+                                <button type="button" class="btn btn-sm btn-primary" id="btn-filter-purchases" style="font-size:12px;">🔍</button>
+                            </div>
+                        </div>
+                        <div id="purchase-history-container" style="max-height:400px;overflow-y:auto;border-radius:8px;border:1px solid #f0f0f0;">
+                            <div style="text-align:center;color:#999;padding:20px;" data-i18n="noReception">Aucune réception</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        SECTION 9: VIEW - ANALYTICS
+        ============================================================ -->
+        <section id="view-analytics" class="view" role="tabpanel">
+            <!-- Analytics content will be dynamically generated by JavaScript -->
+        </section>
+
+        <!-- ============================================================
+        VIEW - PROMOTIONS
+        ============================================================ -->
+        <section id="view-promotions" class="view" role="tabpanel">
+            <div id="promotions-content">
+                <div style="text-align:center;color:#999;padding:40px;" data-i18n="loading">Chargement des promotions...</div>
+            </div>
+        </section>
+
+<!-- ============================================================
+        SECTION 9: VIEW - SETTINGS (MODERN)
+        ============================================================ -->
+        <section id="view-settings" class="view" role="tabpanel">
+            <div class="settings-shell">
+
+                <!-- Sidebar Navigation -->
+                <aside class="settings-sidebar">
+                    <div class="settings-sidebar-head">
+                        <div class="settings-sidebar-logo">⚙️</div>
+                        <div>
+                            <div class="settings-sidebar-title" data-i18n="settingsTitle">Paramètres</div>
+                            <div class="settings-sidebar-sub" data-i18n="settingsSubtitle">Configuration du système</div>
+                        </div>
+                    </div>
+                    <nav class="settings-nav" id="settings-nav">
+                        <button class="settings-nav-item active" data-category="general">
+                            <span class="settings-nav-icon">🏪</span>
+                            <span>Général</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="appearance">
+                            <span class="settings-nav-icon">🎨</span>
+                            <span>Apparence</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="checkout">
+                            <span class="settings-nav-icon">💳</span>
+                            <span>Caisse</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="inventory">
+                            <span class="settings-nav-icon">📦</span>
+                            <span>Stock</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="receipt">
+                            <span class="settings-nav-icon">🧾</span>
+                            <span>Ticket</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="scanner">
+                            <span class="settings-nav-icon">📡</span>
+                            <span>Scanner</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="backup">
+                            <span class="settings-nav-icon">💾</span>
+                            <span>Sauvegarde</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="system">
+                            <span class="settings-nav-icon">🛠️</span>
+                            <span>Système</span>
+                        </button>
+                    </nav>
+                    <div class="settings-sidebar-foot">
+                        <span>SamtexChabet POS</span>
+                        <span class="version-pill">v1.0.0</span>
+                    </div>
+                </aside>
+
+                <!-- Main Content -->
+                <div class="settings-main">
+                    <div class="settings-content">
+
+                        <!-- ===== GENERAL ===== -->
+                        <section class="settings-panel active" id="panel-general">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">🏪</div>
+                                <div>
+                                    <h2>Général</h2>
+                                    <p>Magasin, devise, TVA et localisation</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🏪</span>
+                                        Informations du magasin
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-shop-name">Nom du magasin <span class="help-icon">ⓘ<span class="tooltip-text">Nom affiché sur les tickets et dans l'en-tête de l'application</span></span></label>
+                                        <input type="text" id="settings-shop-name" placeholder="Mon Magasin">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-shop-phone">Téléphone</label>
+                                        <input type="tel" id="settings-shop-phone" placeholder="+213 5XX XX XX XX">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-shop-address">Adresse</label>
+                                        <input type="text" id="settings-shop-address" placeholder="123 Rue Principale">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-shop-email">Email</label>
+                                        <input type="email" id="settings-shop-email" placeholder="contact@magasin.com">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🌐</span>
+                                        Localisation & Devise
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-currency">Devise <span class="help-icon">ⓘ<span class="tooltip-text">Symbole monétaire utilisé pour tous les montants (DA, €, $, etc.)</span></span></label>
+                                        <input type="text" id="settings-currency" value="DA" maxlength="5">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-locale">Locale</label>
+                                        <select id="settings-locale">
+                                            <option value="fr-FR">Français (France)</option>
+                                            <option value="fr-DZ">Français (Algérie)</option>
+                                            <option value="en-US">English (US)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-timezone">Fuseau horaire</label>
+                                        <select id="settings-timezone">
+                                            <option value="Africa/Algiers">Alger (UTC+1)</option>
+                                            <option value="Europe/Paris">Paris (UTC+1/UTC+2)</option>
+                                            <option value="UTC">UTC</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-date-format">Format de date</label>
+                                        <select id="settings-date-format">
+                                            <option value="DD/MM/YYYY">JJ/MM/AAAA</option>
+                                            <option value="MM/DD/YYYY">MM/JJ/AAAA</option>
+                                            <option value="YYYY-MM-DD">AAAA-MM-JJ</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">📊</span>
+                                        TVA & Fiscalité
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-vat">Taux TVA (%) <span class="help-icon">ⓘ<span class="tooltip-text">Pourcentage de TVA appliqué sur les prix (ex: 19%)</span></span></label>
+                                        <input type="number" id="settings-vat" value="19" step="0.1" min="0" max="100">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-vat-inclusive">Prix TTC <span class="help-icon">ⓘ<span class="tooltip-text">HT : TVA ajoutée au prix. TTC : TVA déjà incluse dans le prix</span></span></label>
+                                        <select id="settings-vat-inclusive">
+                                            <option value="false">HT (TVA ajoutée)</option>
+                                            <option value="true">TTC (TVA incluse)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-fiscal-id">ID Fiscal / NIS</label>
+                                        <input type="text" id="settings-fiscal-id" placeholder="12345678901234">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-opening-float">Fond de caisse (DA) <span class="help-icon">ⓘ<span class="tooltip-text">Montant de monnaie disponible en caisse en début de journée</span></span></label>
+                                        <input type="number" id="settings-opening-float" value="0" step="100" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== APPEARANCE ===== -->
+                        <section class="settings-panel" id="panel-appearance">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">🎨</div>
+                                <div>
+                                    <h2>Apparence</h2>
+                                    <p>Thème, interface, typographie et densité</p>
+                                </div>
+                            </div>
+
+                            <div class="appearance-hero" id="appearance-hero">
+                                <div class="appearance-hero-swatch">
+                                    <div class="appearance-hero-bar"></div>
+                                    <div class="appearance-hero-swatches">
+                                        <span class="appearance-swatch" id="appearance-swatch-primary"></span>
+                                        <span class="appearance-swatch" id="appearance-swatch-accent"></span>
+                                        <span class="appearance-swatch" id="appearance-swatch-success"></span>
+                                        <span class="appearance-swatch" id="appearance-swatch-bg"></span>
+                                    </div>
+                                </div>
+                                <div class="appearance-hero-info">
+                                    <span class="appearance-hero-label">Thème actuel</span>
+                                    <div class="appearance-hero-name" id="appearance-theme-name">—</div>
+                                    <div class="appearance-hero-desc" id="appearance-theme-desc">—</div>
+                                    <div class="appearance-hero-badges" id="appearance-hero-badges"></div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🎨</span>
+                                        Thème & Couleurs
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <p class="settings-desc">Choisissez un thème : les classiques habillent les couleurs, les thèmes POS restructurent l'interface.</p>
+                                    <div id="theme-selector" class="theme-grid"></div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🏗️</span>
+                                        Structure
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <p class="settings-desc">Choisissez l'architecture générale de l'interface : les couleurs, la typographie et la marque du thème actif sont conservées.</p>
+                                    <div id="structure-selector" class="structure-selector"></div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🔤</span>
+                                        Interface
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="settings-subsection">
+                                        <div class="settings-subsection-title"><span class="settings-subsection-icon">🧭</span>Affichage & navigation</div>
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name">Icônes</span>
+                                                <span class="toggle-desc">Affiche les icônes émoji dans les libellés (navigation, boutons)</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="showIconsEnabled" onchange="setToggle('showIconsEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name">Mode compact</span>
+                                                <span class="toggle-desc">Réduit les espacements pour afficher plus d'informations à l'écran</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="compactModeEnabled" onchange="setToggle('compactModeEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-subsection">
+                                        <div class="settings-subsection-title"><span class="settings-subsection-icon">👁️</span>Confort & lisibilité</div>
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name">Animations</span>
+                                                <span class="toggle-desc">Active les transitions visuelles (ouvertures/fermetures, apparitions)</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="animationsEnabled" onchange="setToggle('animationsEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name">Contraste élevé</span>
+                                                <span class="toggle-desc">Augmente le contraste des couleurs pour une meilleure lisibilité</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="highContrastEnabled" onchange="setToggle('highContrastEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name">Mode sombre</span>
+                                                <span class="toggle-desc">Active le thème sombre pour réduire la fatigue oculaire</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="darkModeEnabled" onchange="setToggle('darkModeEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-subsection">
+                                        <div class="settings-subsection-title"><span class="settings-subsection-icon">🔠</span>Typographie & densité</div>
+                                        <div class="settings-form-grid">
+                                            <div class="form-group">
+                                                <label for="settings-font-size">Taille de police</label>
+                                                <select id="settings-font-size">
+                                                    <option value="small">Petite</option>
+                                                    <option value="medium" selected>Moyenne</option>
+                                                    <option value="large">Grande</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="settings-density">Densité</label>
+                                                <select id="settings-density">
+                                                    <option value="comfortable">Confortable</option>
+                                                    <option value="compact" selected>Compact</option>
+                                                    <option value="spacious">Espacé</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== CHECKOUT ===== -->
+                        <section class="settings-panel" id="panel-checkout">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">💳</div>
+                                <div>
+                                    <h2>Caisse</h2>
+                                    <p>Comportement de la caisse, paiement et client rapide</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">💳</span>
+                                        Comportement Caisse
+                                    </div>
+                                </div>
+                                 <div class="settings-card-body">
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Focus auto scanner</span>
+                                              <span class="toggle-desc">Donne automatiquement le focus au champ de scan quand la vue Caisse s'ouvre</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="autoFocusScannerEnabled" onchange="setToggle('autoFocusScannerEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Ajout auto quantité</span>
+                                              <span class="toggle-desc">Ajoute automatiquement la quantité scannée sans demande de confirmation</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="autoAddQtyEnabled" onchange="setToggle('autoAddQtyEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Sons</span>
+                                              <span class="toggle-desc">Joue des bips sonores lors des actions : scan de produit, succès, erreur, avertissement</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="soundEnabled" onchange="setToggle('soundEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Vibration mobile</span>
+                                              <span class="toggle-desc">Fait vibrer l'appareil mobile lors des actions (scan, erreur, succès)</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="vibrationEnabled" onchange="setToggle('vibrationEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Confirmer vidage panier</span>
+                                              <span class="toggle-desc">Affiche une boîte de confirmation avant de vider le panier (sinon vide immédiatement)</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="confirmClearEnabled" onchange="setToggle('confirmClearEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Demander client</span>
+                                              <span class="toggle-desc">Affiche une invite pour sélectionner un client avant chaque nouvelle vente</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="askCustomerEnabled" onchange="setToggle('askCustomerEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Suivi lots / dates</span>
+                                              <span class="toggle-desc">Active le suivi des lots et dates de péremption pour les produits</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="trackBatchesEnabled" onchange="setToggle('trackBatchesEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Code-barres auto</span>
+                                              <span class="toggle-desc">Génère automatiquement des codes-barres pour les nouveaux produits</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="autoBarcodeEnabled" onchange="setToggle('autoBarcodeEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Sauvegarde auto inventaire</span>
+                                              <span class="toggle-desc">Sauvegarde automatiquement les modifications de stock dans l'inventaire</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="inventoryAutoSaveEnabled" onchange="setToggle('inventoryAutoSaveEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">💰</span>
+                                        Paiement
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-default-payment">Mode de paiement défaut <span class="help-icon">ⓘ<span class="tooltip-text">Mode de paiement présélectionné lors de la finalisation d'une vente</span></span></label>
+                                        <select id="settings-default-payment">
+                                            <option value="cash">Espèces</option>
+                                            <option value="card">Carte</option>
+                                            <option value="check">Chèque</option>
+                                            <option value="transfer">Virement</option>
+                                            <option value="mixed">Mixte</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-rounding">Arrondi <span class="help-icon">ⓘ<span class="tooltip-text">Arrondit le total au montant le plus proche (ex: 5 centimes, 10 centimes)</span></span></label>
+                                        <select id="settings-rounding">
+                                            <option value="none">Aucun</option>
+                                            <option value="0.05">5 centimes</option>
+                                            <option value="0.10">10 centimes</option>
+                                            <option value="0.50">50 centimes</option>
+                                            <option value="1">1 DA</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">💳</span>
+                                        Moyens de paiement
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <p style="font-size:12px;color:#777;margin-bottom:10px;">Ajoutez, retirez ou réorganisez les modes de paiement disponibles à la caisse. Les moyens intégrés (Espèces, Crédit) ont un comportement particulier et ne peuvent pas être modifiés, mais ils peuvent être retirés de la caisse.</p>
+                                    <div id="payment-methods-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
+                                    <div style="border-top:1px dashed #e0e0e0;padding-top:12px;">
+                                        <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:8px;">➕ Ajouter un moyen de paiement</div>
+                                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                            <input type="text" id="pm-new-label" placeholder="Nom (ex: Edahabia)" style="flex:2;min-width:140px;padding:6px 10px;border:2px solid #e0e0e0;border-radius:6px;font-size:13px;font-family:var(--font-family);">
+                                            <input type="text" id="pm-new-icon" placeholder="Icône (ex: 🏧)" maxlength="4" style="width:90px;padding:6px 10px;border:2px solid #e0e0e0;border-radius:6px;font-size:13px;font-family:var(--font-family);text-align:center;">
+                                            <input type="text" id="pm-new-fields" placeholder="Champs (ex: N° tél, Référence)" style="flex:3;min-width:160px;padding:6px 10px;border:2px solid #e0e0e0;border-radius:6px;font-size:13px;font-family:var(--font-family);">
+                                            <button class="btn btn-primary btn-sm" id="btn-add-payment-method" type="button">Ajouter</button>
+                                        </div>
+                                        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+                                            <button class="btn btn-secondary btn-sm" id="btn-reset-payment-methods" type="button">↩️ Restaurer les moyens par défaut</button>
+                                            <span style="font-size:11px;color:#999;">Les champs sont séparés par des virgules (optionnel).</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">⚡</span>
+                                        Client Rapide
+                                    </div>
+                                </div>
+                                 <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name">Activer</span>
+                                            <span class="toggle-desc">Affiche le bouton « Client rapide » dans la vue Caisse pour activer le mode de vente rapide</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="quickCustomerEnabled" onchange="setToggle('quickCustomerEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-quick-customer-name">Nom par défaut</label>
+                                        <input type="text" id="settings-quick-customer-name" value="Client rapide">
+                                    </div>
+                                 </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== INVENTORY ===== -->
+                        <section class="settings-panel" id="panel-inventory">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">📦</div>
+                                <div>
+                                    <h2>Stock</h2>
+                                    <p>Seuils, unités et gestion de l'inventaire</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">📦</span>
+                                        Gestion Stock
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-low-stock">Seuil stock bas <span class="help-icon">ⓘ<span class="tooltip-text">Alerte lorsque le stock d'un produit descend en dessous de ce nombre</span></span></label>
+                                        <input type="number" id="settings-low-stock" value="5" step="1" min="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-negative-stock">Stock négatif <span class="help-icon">ⓘ<span class="tooltip-text">Autoriser : vendre même si stock insuffisant. Avertir : prévient mais autorise. Bloquer : refuse la vente</span></span></label>
+                                        <select id="settings-negative-stock">
+                                            <option value="allow">Autoriser</option>
+                                            <option value="warn">Avertir</option>
+                                            <option value="block">Bloquer</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-track-batches">Suivi lots / dates</label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="settings-track-batches" checked>
+                                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                        </label>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-auto-barcode">Code-barres auto</label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="settings-auto-barcode">
+                                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🏷️</span>
+                                        Unités & Catégories
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-default-unit">Unité par défaut <span class="help-icon">ⓘ<span class="tooltip-text">Unité de mesure par défaut pour les nouveaux produits (pièce, kg, m, etc.)</span></span></label>
+                                        <select id="settings-default-unit">
+                                            <option value="pièce">Pièce</option>
+                                            <option value="kg">Kg</option>
+                                            <option value="m">Mètre</option>
+                                            <option value="l">Litre</option>
+                                            <option value="pack">Pack</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-allow-decimal-qty-decimals">Quantités décimales</label>
+                                        <label class="toggle-label">
+                                            <input type="checkbox" id="settings-allow-decimal-qty-decimals" checked>
+                                            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🔄</span>
+                                        Inventaire
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+
+                                    <div class="form-group">
+                                        <label for="settings-inventory-interval">Intervalle (min)</label>
+                                        <input type="number" id="settings-inventory-interval" value="5" min="1" max="60">
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== RECEIPT ===== -->
+                        <section class="settings-panel" id="panel-receipt">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">🧾</div>
+                                <div>
+                                    <h2>Ticket</h2>
+                                    <p>Impression, en-tête, pied et format du ticket</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🧾</span>
+                                        Impression Ticket
+                                    </div>
+                                </div>
+                                 <div class="settings-card-body">
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Impression auto</span>
+                                              <span class="toggle-desc">Imprime automatiquement le ticket après chaque vente</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="printAutoEnabled" onchange="setToggle('printAutoEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Logo magasin</span>
+                                              <span class="toggle-desc">Affiche le logo du magasin sur le ticket de caisse</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="printLogoEnabled" onchange="setToggle('printLogoEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">QR Code</span>
+                                              <span class="toggle-desc">Ajoute un QR Code sur le ticket pour un accès rapide aux informations</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="printQREnabled" onchange="setToggle('printQREnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Détails TVA</span>
+                                              <span class="toggle-desc">Affiche le détail de la TVA sur le ticket de caisse</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="printVATDetailsEnabled" onchange="setToggle('printVATDetailsEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Quantités décimales</span>
+                                              <span class="toggle-desc">Permet d'utiliser des quantités décimales pour les produits (ex: 1.5 kg)</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="allowDecimals" onchange="setToggle('allowDecimals', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                 </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">📝</span>
+                                        En-tête & Pied de ticket
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group full">
+                                        <label for="settings-receipt-header">En-tête</label>
+                                        <textarea id="settings-receipt-header" rows="2" placeholder="Merci de votre visite !"></textarea>
+                                    </div>
+                                    <div class="form-group full">
+                                        <label for="settings-receipt-footer">Pied de page</label>
+                                        <textarea id="settings-receipt-footer" rows="2" placeholder="TVA non applicable, art. 293B CGI"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🖨️</span>
+                                        Imprimante
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-printer-type">Type</label>
+                                        <select id="settings-printer-type">
+                                            <option value="thermal">Thermique 58/80mm</option>
+                                            <option value="a4">A4 Standard</option>
+                                            <option value="browser">Navigateur</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-printer-width">Largeur papier</label>
+                                        <select id="settings-printer-width">
+                                            <option value="58">58 mm</option>
+                                            <option value="80">80 mm</option>
+                                        </select>
+                                    </div>
+                                     <div class="form-group full">
+                                         <label for="settings-print-copies">2 exemplaires</label>
+                                         <div class="toggle-buttons">
+                                             <label class="toggle-label">
+                                                 <input type="checkbox" data-setting="printTwoCopies" onchange="setToggle('printTwoCopies', this.checked)">
+                                                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                             </label>
+                                         </div>
+                                     </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== SCANNER ===== -->
+                        <section class="settings-panel" id="panel-scanner">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">📡</div>
+                                <div>
+                                    <h2>Scanner</h2>
+                                    <p>Compatibilité avec les lecteurs USB / Bluetooth (clavier HID)</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">⚙️</span>
+                                        Configuration du scanner
+                                    </div>
+                                </div>
+                                <div class="settings-form-grid">
+                                    <div class="form-group">
+                                        <label for="settings-scanner-prefixes">Préfixes à ignorer <span class="help-icon">ⓘ<span class="tooltip-text">Séparés par des virgules. Certains scanners envoient un préfixe de contrôle (ex: ]C1, GS). Ces caractères seront retirés au début du code.</span></span></label>
+                                        <input type="text" id="settings-scanner-prefixes" placeholder="]C1,]C0,P">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-scanner-term">Suffixe de fin <span class="help-icon">ⓘ<span class="tooltip-text">Entrée : le scanner appuie sur Entrée après le code. Tab : il envoie une tabulation. Auto : retire tout caractère de contrôle en fin de code.</span></span></label>
+                                        <select id="settings-scanner-term">
+                                            <option value="auto">Auto (recommandé)</option>
+                                            <option value="enter">Entrée</option>
+                                            <option value="tab">Tabulation</option>
+                                            <option value="none">Aucun</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-scanner-timeout">Délai de scan (ms) <span class="help-icon">ⓘ<span class="tooltip-text">Temps d'inactivité après le dernier caractère avant de valider le code. Augmentez si les scans sont coupés, baissez pour une réponse plus rapide.</span></span></label>
+                                        <input type="number" id="settings-scanner-timeout" value="120" step="10" min="40" max="2000">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🧪</span>
+                                        Test de scan
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <p class="settings-desc">Scannez un code ou tapez le contenu brut reçu par le lecteur : l'application affiche le code nettoyé qui sera ajouté au panier.</p>
+                                    <div class="scanner-test-row">
+                                        <input type="text" id="scanner-test-input" placeholder="Scannez un code-barres ici…" autocomplete="off">
+                                        <span class="scanner-test-arrow">➜</span>
+                                        <div class="scanner-test-result">
+                                            <span class="scanner-test-label">Code nettoyé :</span>
+                                            <strong id="scanner-test-clean">—</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== BACKUP ===== -->
+                        <section class="settings-panel" id="panel-backup">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">💾</div>
+                                <div>
+                                    <h2>Sauvegarde</h2>
+                                    <p>Automatisation, restauration et zone de danger</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">💾</span>
+                                        Sauvegarde Automatique
+                                    </div>
+                                </div>
+                                 <div class="settings-card-body">
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Activer auto-backup</span>
+                                              <span class="toggle-desc">Sauvegarde automatique des données après chaque vente</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="autoBackupEnabled" onchange="setToggle('autoBackupEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-form-grid">
+                                          <div class="form-group">
+                                              <label for="settings-backup-interval">Intervalle</label>
+                                              <select id="settings-backup-interval">
+                                                  <option value="5">5 min</option>
+                                                  <option value="15">15 min</option>
+                                                  <option value="30" selected>30 min</option>
+                                                  <option value="60">1 heure</option>
+                                                  <option value="1440">Quotidien</option>
+                                              </select>
+                                          </div>
+                                          <div class="form-group">
+                                              <label for="settings-backup-retention">Rétention</label>
+                                              <select id="settings-backup-retention">
+                                                  <option value="7">7 jours</option>
+                                                  <option value="30" selected>30 jours</option>
+                                                  <option value="90">90 jours</option>
+                                                  <option value="365">1 an</option>
+                                              </select>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Cloud (Google Drive)</span>
+                                              <span class="toggle-desc">Synchronise les sauvegardes vers Google Drive pour un accès externe</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="cloudBackupEnabled" onchange="setToggle('cloudBackupEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                      <div class="settings-toggle-row">
+                                          <div class="toggle-text">
+                                              <span class="toggle-name">Mises à jour auto</span>
+                                              <span class="toggle-desc">Installe automatiquement les mises à jour du système</span>
+                                          </div>
+                                          <div class="toggle-buttons">
+                                              <label class="toggle-label">
+                                                  <input type="checkbox" data-setting="autoUpdateEnabled" onchange="setToggle('autoUpdateEnabled', this.checked)">
+                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                              </label>
+                                          </div>
+                                      </div>
+                                 </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">📤</span>
+                                        Actions Manuelles
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="btn-row">
+                                        <button class="btn btn-success" onclick="manualBackup()">💾 Télécharger</button>
+                                        <button class="btn btn-primary" id="btn-export-full-backup">💾 Sauvegarde complète</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">📥</span>
+                                        Restauration & Import
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="form-group full">
+                                        <label for="file-import-full">Restaurer sauvegarde (.json)</label>
+                                        <input type="file" id="file-import-full" accept=".json" class="file-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card danger-zone">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">⚠️</span>
+                                        Zone de Danger
+                                    </div>
+                                    <span class="settings-card-hint">Actions irréversibles</span>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="btn-row">
+                                        <button class="btn btn-danger" id="btn-reset-all">⚠️ Tout réinitialiser</button>
+                                        <button class="btn btn-danger" id="btn-clear-sales">🗑️ Effacer ventes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ===== SYSTEM ===== -->
+                        <section class="settings-panel" id="panel-system">
+                            <div class="settings-panel-title">
+                                <div class="panel-badge">🛠️</div>
+                                <div>
+                                    <h2>Système</h2>
+                                    <p>Informations, maintenance et licence</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">📊</span>
+                                        Informations Système
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="stats-grid">
+                                        <div class="stat-card">
+                                            <span class="stat-icon">🗄️</span>
+                                            <span class="stat-label">Base de données</span>
+                                            <span class="stat-value" id="settings-db-info">—</span>
+                                        </div>
+                                        <div class="stat-card">
+                                            <span class="stat-icon">💽</span>
+                                            <span class="stat-label">Stockage utilisé</span>
+                                            <span class="stat-value" id="settings-storage-info">—</span>
+                                        </div>
+                                        <div class="stat-card">
+                                            <span class="stat-icon">📦</span>
+                                            <span class="stat-label">Produits</span>
+                                            <span class="stat-value" id="settings-products-count">—</span>
+                                        </div>
+                                        <div class="stat-card">
+                                            <span class="stat-icon">👤</span>
+                                            <span class="stat-label">Clients</span>
+                                            <span class="stat-value" id="settings-customers-count">—</span>
+                                        </div>
+                                        <div class="stat-card">
+                                            <span class="stat-icon">📊</span>
+                                            <span class="stat-label">Stock</span>
+                                            <span class="stat-value" id="settings-stock-count">—</span>
+                                        </div>
+                                        <div class="stat-card">
+                                            <span class="stat-icon">🚀</span>
+                                            <span class="stat-label">Version</span>
+                                            <span class="stat-value">1.0.0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🔧</span>
+                                        Maintenance
+                                    </div>
+                                </div>
+                                 <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name">Rapport avancé</span>
+                                            <span class="toggle-desc">Active les rapports avancés (ventes, stocks, performances)</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="advancedReportingEnabled" onchange="setToggle('advancedReportingEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="btn-row">
+                                        <button class="btn btn-primary" id="btn-optimize-db">⚡ Optimiser DB</button>
+                                        <button class="btn btn-secondary" id="btn-clear-cache">🧹 Vider cache</button>
+                                        <button class="btn btn-secondary" id="btn-export-logs">📋 Exporter logs</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🖱️</span>
+                                        Personnalisation des boutons (clic droit)
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div id="btn-custom-list"></div>
+                                    <div class="btn-row" style="margin-top:12px;">
+                                        <button class="btn btn-secondary" id="btn-reset-all-buttons">↺ Tout réinitialiser</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </section>
+
+                    </div>
+
+                    <div class="settings-bar">
+                        <div id="settings-feedback" class="settings-feedback" style="display:none;"></div>
+                        <div class="settings-bar-actions">
+                            <button class="btn btn-secondary" id="btn-reset-settings">↺ Réinitialiser</button>
+                            <button class="btn btn-primary" id="btn-save-settings">💾 Sauvegarder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        VIEW - USERS
+        ============================================================ -->
+        <section id="view-users" class="view" role="tabpanel">
+            <div>
+                <div id="users-admin-section">
+                    <h3 style="margin-bottom:12px;" data-i18n="usersManagement">🗣️ Gestion des utilisateurs</h3>
+                    <button class="btn btn-primary" id="btn-create-user" style="margin-bottom:12px;" data-i18n="addUser">➕ Ajouter un utilisateur</button>
+                    <div id="users-list"></div>
+                    <div style="margin-top:24px;padding-top:20px;border-top:2px solid #f0f0f0;">
+                        <h4 style="font-size:16px;color:var(--primary);margin-bottom:12px;" data-i18n="activityLog">📋 Historique des activités</h4>
+                        <button class="btn btn-primary" id="btn-view-audit" data-i18n="viewAllHistory">📄 Voir tout l'historique</button>
+                        <p style="font-size:12px;color:#999;margin-top:4px;" data-i18n="activityHint">Consultez toutes les actions effectuées par les utilisateurs. Cliquez sur 📋 dans la liste d'un utilisateur pour voir son historique individuel.</p>
+                    </div>
+                </div>
+                <div id="users-self-section" style="display:none;">
+                    <h3 style="margin-bottom:12px;" data-i18n="selfProfileTitle">👤 Mon Profil</h3>
+                    <form id="self-profile-form">
+                        <div class="form-group">
+                            <label for="self-profile-name" data-i18n="profileNameLabel">Nom</label>
+                            <input type="text" id="self-profile-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="self-profile-role" data-i18n="profileRoleLabel">Rôle</label>
+                            <input type="text" id="self-profile-role" disabled>
+                        </div>
+                        <div id="self-profile-error" style="color:var(--danger);font-size:13px;min-height:20px;margin-bottom:8px;"></div>
+                        <div style="display:flex;gap:8px;">
+                            <button type="submit" class="btn btn-primary" data-i18n="saveProfile">💾 Enregistrer</button>
+                            <button type="button" class="btn btn-accent" id="btn-self-change-pin" data-i18n="changeMyPinBtn">🔑 Changer mon PIN</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============================================================
+    TOAST CONTAINER
+    ============================================================ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ============================================================
+    SECTION 11: MODAL - EDIT PRODUCT
+    ============================================================ -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <h3 data-i18n="editProductModal">✏️ Modifier le produit</h3>
+            <form id="edit-product-form">
+                <div class="form-group">
+                    <label data-i18n="barcodeLabel">Code-barres *</label>
+                    <input type="text" id="edit-barcode" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="referenceLabel">Code de référence</label>
+                    <input type="text" id="edit-reference">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="nameLabel">Nom du produit *</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="categoryLabel">Catégorie</label>
+                    <select id="edit-category">
+                        <option value="" data-i18n="selectCategoryPrompt">-- Sélectionner une catégorie --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="unitLabel">Unité *</label>
+                    <select id="edit-unit" required>
+                        <option value="pièce" data-i18n="pieceOption">Pièce</option>
+                        <option value="mètre" data-i18n="meterOption">Mètre</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="priceLabel">Prix (DA) *</label>
+                        <input type="number" id="edit-price" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <!-- FIXED: Allow decimal values for stock in edit modal -->
+                        <label data-i18n="stockLabelInput">Stock *</label>
+                        <input type="number" id="edit-stock" step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="purchasePriceLabel">Prix d'achat (DA) *</label>
+                    <input type="number" id="edit-purchase-price" step="0.01" min="0" required>
+                    <span style="font-size:11px;color:#999;" data-i18n="purchasePriceHint">Coût d'achat du produit</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-i18n="supplierLabel">Fournisseur</label>
+                        <select id="edit-supplier">
+                            <option value="" data-i18n="noSupplier">-- Aucun fournisseur --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="minStockLabel">Stock minimum</label>
+                        <input type="number" id="edit-min-stock" value="5" min="0" step="1">
+                    </div>
+                </div>
+                <div class="form-row" id="edit-batch-row" style="display:none;">
+                    <div class="form-group">
+                        <label data-i18n="batchNumberLabel">N° de lot</label>
+                        <input type="text" id="edit-batch-number" placeholder="LOT-001">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="expiryDateLabel">Date de péremption</label>
+                        <input type="date" id="edit-expiry-date">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="imageLabel">Image du produit</label>
+                    <input type="file" id="edit-image" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <div id="edit-image-preview" class="image-preview"></div>
+                    <span class="field-hint" data-i18n="imageHint">JPG, PNG, GIF, WebP • Max 2 Mo</span>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary" data-i18n="update">💾 Mettre à jour</button>
+                    <button type="button" class="btn btn-secondary" id="btn-close-modal" data-i18n="cancelBtn">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<!-- ============================================================
+SECTION 11.5: MODAL - VARIANT MANAGEMENT
+============================================================ -->
+<div class="modal-overlay" id="variant-modal">
+    <div class="modal">
+        <h3 data-i18n="manageVariants">🎨 Gérer les variantes</h3>
+        <p style="color:#666;font-size:13px;margin-bottom:12px;" id="variant-product-name"></p>
+        <input type="hidden" id="variant-parent-barcode">
+
+        <div id="variant-list" style="margin-bottom:16px;max-height:250px;overflow-y:auto;">
+            <p style="color:#999;font-size:13px;" data-i18n="noVariants">Aucune variante pour ce produit</p>
+        </div>
+
+        <form id="variant-form" style="border-top:1px solid #eee;padding-top:16px;">
+            <input type="hidden" id="variant-id">
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-i18n="variantName">Nom de la variante *</label>
+                    <input type="text" id="variant-name-input" placeholder="ex: Rouge, XL" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="variantType">Type</label>
+                    <select id="variant-type">
+                        <option value="Couleur" data-i18n="variantTypeColor">Couleur</option>
+                        <option value="Taille" data-i18n="variantTypeSize">Taille</option>
+                        <option value="Autre" data-i18n="variantTypeOther">Autre</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label data-i18n="variantPrice">Prix (DA, optionnel)</label>
+                    <input type="number" id="variant-price" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="variantStock">Stock (optionnel)</label>
+                    <input type="number" id="variant-stock" step="0.01" min="0" placeholder="0">
+                </div>
+            </div>
+            <div class="form-group">
+                <label data-i18n="variantBarcode">Code-barres (optionnel)</label>
+                <input type="text" id="variant-barcode" placeholder="Scanner le code-barres de la variante" data-i18n-placeholder="scanVariantBarcode">
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary" data-i18n="variantSave">💾 Enregistrer la variante</button>
+                <button type="button" class="btn btn-secondary" id="btn-close-variant-modal" data-i18n="cancelBtn">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - VARIANT PICKER (CHECKOUT)
+============================================================ -->
+<div class="modal-overlay" id="variant-picker-modal">
+    <div class="modal modal-small">
+        <h3 id="variant-picker-title" style="text-align:center;" data-i18n="chooseVariant">Choisir une variante</h3>
+        <div id="variant-picker-list" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;"></div>
+        <div class="modal-actions" style="margin-top:16px;justify-content:center;">
+            <button class="btn btn-secondary" onclick="closeVariantPicker()" data-i18n="cancelBtn">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - CUSTOMER DETAIL
+============================================================ -->
+<div class="modal-overlay" id="customer-detail-modal">
+    <div class="modal modal-large">
+        <h3 id="customer-detail-name" data-i18n="customerDetailTitle">👤 Client</h3>
+
+        <div class="customer-info-grid">
+            <div><strong data-i18n="phoneLabel">Téléphone:</strong> <span id="detail-phone">-</span></div>
+            <div><strong data-i18n="addressLabel">Adresse:</strong> <span id="detail-address">-</span></div>
+            <div><strong data-i18n="registrationDateLabel">Date d'inscription:</strong> <span id="detail-date">-</span></div>
+            <div>
+                <strong style="color:var(--danger);" data-i18n="totalDebtLabel">Dette totale:</strong>
+                <span id="detail-total-debt" style="color:var(--danger);font-weight:700;">0.00 DA</span>
+            </div>
+        </div>
+
+        <div class="partial-payment-section" id="partial-payment-section">
+            <h4 data-i18n="partialPayment">💰 Paiement Partiel</h4>
+            <div class="partial-payment-row">
+                <label for="partial-payment-amount" data-i18n="amountToPay">Montant à payer (DA):</label>
+                <input type="number" id="partial-payment-amount" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="partial-payment-row" style="margin-top:8px;">
+                <span style="font-size:13px;color:#666;" data-i18n="remainingAfterPayment">Dette restante après paiement:</span>
+                <span id="partial-payment-remaining" style="font-weight:700;color:var(--danger);">0.00 DA</span>
+            </div>
+            <button class="btn btn-accent" id="btn-partial-payment" style="margin-top:12px;width:100%;" data-i18n="applyPartialPayment">💰 Appliquer le paiement partiel</button>
+        </div>
+
+        <h4 style="margin:16px 0 8px 0;" data-i18n="debtHistoryTitle">📋 Historique des dettes</h4>
+        <div class="table-wrap" style="max-height:300px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40px;"></th>
+                        <th data-i18n="tableHeaderDate">Date</th>
+                        <th data-i18n="tableHeaderArticles">Articles</th>
+                        <th data-i18n="subtotal">Total (DA)</th>
+                        <th data-i18n="amountPaid">Payé (DA)</th>
+                        <th data-i18n="remaining">Reste (DA)</th>
+                        <th data-i18n="tableHeaderStatut">Statut</th>
+                        <th style="width:50px;" data-i18n="tableActions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="customer-debts-body">
+                    <tr>
+                        <td colspan="8" style="text-align:center;color:#999;padding:20px 0;" data-i18n="noDebt">Aucune dette</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-actions" style="margin-top:16px;">
+            <button class="btn btn-success" id="btn-pay-debt" data-i18n="payDebtsBtn">💰 Payer les dettes sélectionnées</button>
+            <button class="btn btn-secondary" id="btn-close-customer-modal" data-i18n="closeModal">Fermer</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - USER CREATE/EDIT
+============================================================ -->
+<div class="modal-overlay" id="user-modal">
+    <div class="modal">
+        <h3 id="user-modal-title" data-i18n="newUserTitle">➕ Nouvel utilisateur</h3>
+        <form id="user-form" autocomplete="off">
+            <div class="form-group">
+                <label for="user-name" data-i18n="userFullName">Nom complet *</label>
+                <input type="text" id="user-name" placeholder="ex: Ahmed Benali" required>
+            </div>
+            <div class="form-group" id="user-pin-group">
+                <label for="user-pin" data-i18n="userPinLabel">PIN (4-6 chiffres) *</label>
+                <div style="display:flex;gap:6px;">
+                    <input type="password" id="user-pin" pattern="\d{4,6}" maxlength="6" placeholder="●●●●" autocomplete="off" style="flex:1;">
+                    <button type="button" class="btn btn-sm btn-secondary" id="btn-toggle-pin-visibility" onclick="togglePinVisibility('user-pin', this)" style="padding:8px 12px;">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="user-role" data-i18n="userRoleLabel">Rôle *</label>
+                <select id="user-role" required>
+                    <option value="caissier" data-i18n="roleCaissier">Caissier</option>
+                    <option value="gerant" data-i18n="roleGerant">Gérant</option>
+                    <option value="admin" data-i18n="roleAdmin">Administrateur</option>
+                </select>
+            </div>
+            <div class="form-group" id="user-force-pin-group" style="display:none;">
+                <label style="display:flex;align-items:center;gap:8px;font-weight:400;cursor:pointer;">
+                    <input type="checkbox" id="user-force-pin-change">
+                    <span data-i18n="forcePinChangeLabel">🔑 Forcer le changement de PIN à la prochaine connexion</span>
+                </label>
+            </div>
+            <div class="form-group" id="user-permissions-group" style="display:none;">
+                <details>
+                    <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--primary);"><span data-i18n="permissionsLabel">🔐 Permissions personnalisées</span> <span style="font-weight:400;color:#999;" data-i18n="permissionsOptionalLabel">(optionnel)</span></summary>
+                    <div id="user-permissions-list" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;"></div>
+                    <p style="font-size:11px;color:#999;margin-top:4px;" data-i18n="permissionsHintLabel">Laissez vide pour utiliser les permissions par défaut du rôle.</p>
+                </details>
+            </div>
+            <div id="user-modal-error" style="color:var(--danger);font-size:13px;margin-bottom:8px;min-height:20px;"></div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary" data-i18n="saveUserBtn">💾 Enregistrer</button>
+                <button type="button" class="btn btn-secondary" id="btn-close-user-modal" data-i18n="cancelBtn">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - USER PIN CHANGE (Admin operation)
+============================================================ -->
+<div class="modal-overlay" id="user-pin-change-modal">
+    <div class="modal">
+        <h3><span data-i18n="pinChangeTitle">🔑 Changer le PIN de </span><span id="pin-change-user-name"></span></h3>
+        <form id="user-pin-change-form" autocomplete="off">
+            <div class="form-group">
+                <label data-i18n="newPinLabel">Nouveau PIN (4-6 chiffres) *</label>
+                <div class="pin-display" id="admin-change-pin-display">○ ○ ○ ○</div>
+                <div class="pin-pad" id="admin-change-pin-pad" style="margin:0 auto;"></div>
+            </div>
+            <div class="form-group" style="margin-top:8px;">
+                <label data-i18n="confirmPinLabel">Confirmer le PIN *</label>
+                <div class="pin-display" id="admin-change-confirm-display">○ ○ ○ ○</div>
+                <div class="pin-pad" id="admin-change-confirm-pad" style="margin:0 auto;"></div>
+            </div>
+            <div id="user-pin-change-error" style="color:var(--danger);font-size:13px;margin-bottom:8px;min-height:20px;"></div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary" data-i18n="changePinBtn">💾 Changer le PIN</button>
+                <button type="button" class="btn btn-secondary" id="btn-close-pin-change-modal" data-i18n="cancelBtn">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - ADMIN PIN CONFIRMATION
+============================================================ -->
+<div class="modal-overlay" id="admin-pin-modal">
+    <div class="modal modal-small">
+        <h3 style="text-align:center;" data-i18n="adminPinConfirmTitle">🔐 Confirmation Admin requise</h3>
+        <p style="text-align:center;color:#666;font-size:13px;" data-i18n="adminPinSubtitle">Entrez le PIN d'un administrateur</p>
+        <div class="pin-display" id="admin-pin-display" style="text-align:center;">○ ○ ○ ○</div>
+        <div class="pin-pad" id="admin-pin-pad" style="margin:0 auto;"></div>
+        <div id="admin-pin-error" class="pin-error" style="text-align:center;"></div>
+        <div class="modal-actions" style="justify-content:center;margin-top:16px;">
+            <button class="btn btn-secondary" id="admin-pin-cancel" data-i18n="cancelBtn">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - CHANGE PIN (First Login)
+============================================================ -->
+<div class="modal-overlay" id="change-pin-modal">
+    <div class="modal">
+        <h3 id="change-pin-title" data-i18n="mandatoryPinTitle">🔑 Changement de PIN obligatoire</h3>
+        <p id="change-pin-desc" style="color:#666;font-size:13px;" data-i18n="mandatoryPinDesc">Votre PIN par défaut (0000) doit être changé pour des raisons de sécurité.</p>
+        <form id="change-pin-form" autocomplete="off" onsubmit="event.preventDefault(); handleChangePinSubmit(event)">
+            <div class="form-group">
+                <label data-i18n="newPinLabel">Nouveau PIN (4-6 chiffres) *</label>
+                <div class="pin-display" id="change-pin-display">○ ○ ○ ○</div>
+                <div class="pin-pad" id="change-pin-pad" style="margin:0 auto;"></div>
+            </div>
+            <div class="form-group" style="margin-top:8px;">
+                <label data-i18n="confirmPinLabel">Confirmer le PIN *</label>
+                <div class="pin-display" id="change-confirm-display">○ ○ ○ ○</div>
+                <div class="pin-pad" id="change-confirm-pad" style="margin:0 auto;"></div>
+            </div>
+            <div id="change-pin-error" style="color:var(--danger);font-size:13px;margin-bottom:8px;min-height:20px;"></div>
+            <div class="modal-actions">
+                <button type="submit" class="btn btn-primary" data-i18n="changePinBtn">💾 Changer le PIN</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - WELCOME / FIRST-RUN SETUP
+============================================================ -->
+<div class="modal-overlay" id="welcome-modal">
+    <div class="modal">
+        <h3>👋 Bienvenue !</h3>
+        <p style="color:#666;font-size:13px;">Configurez votre caisse pour commencer. Vous définirez votre code PIN administrateur à la première connexion.</p>
+        <form id="welcome-form" autocomplete="off" onsubmit="event.preventDefault(); saveWelcome(event)">
+            <div class="form-group">
+                <label for="welcome-shop-name">Nom du magasin *</label>
+                <input type="text" id="welcome-shop-name" placeholder="Ex : Samtex Chabet" required>
+            </div>
+            <div class="form-group" style="margin-top:8px;">
+                <label for="welcome-shop-phone">Téléphone (optionnel)</label>
+                <input type="tel" id="welcome-shop-phone" placeholder="+213 5XX XX XX XX">
+            </div>
+            <div id="welcome-error" style="color:var(--danger);font-size:13px;margin-bottom:8px;min-height:20px;"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeWelcome()" style="margin-right:auto;">Plus tard</button>
+                <button type="submit" class="btn btn-primary">🚀 Démarrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - AUDIT LOG VIEWER
+=========================================================== -->
+<div class="modal-overlay" id="audit-log-modal">
+    <div class="modal modal-large">
+        <h3 style="display:flex;justify-content:space-between;align-items:center;">
+            <span data-i18n="auditLogTitle">📋 Journal d'audit</span>
+            <span id="audit-count" style="font-size:13px;font-weight:400;color:#999;"></span>
+        </h3>
+        <div class="audit-filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <input type="date" id="audit-filter-from" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+            <input type="date" id="audit-filter-to" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+            <select id="audit-filter-user" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                <option value="" data-i18n="auditFilterAllUsers">Tous les utilisateurs</option>
+            </select>
+            <select id="audit-filter-type" style="padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:12px;">
+                <option value="" data-i18n="auditFilterAllActions">Toutes les actions</option>
+            </select>
+            <button class="btn btn-sm btn-primary" id="btn-apply-audit-filters" data-i18n="auditFilterBtn">🔍 Filtrer</button>
+        </div>
+        <div class="table-wrap" style="max-height:400px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:150px;" data-i18n="auditDateHeader">Date</th>
+                        <th style="width:120px;" data-i18n="auditUserHeader">Utilisateur</th>
+                        <th style="width:150px;" data-i18n="auditActionHeader">Action</th>
+                        <th data-i18n="auditDetailsHeader">Détails</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-log-body">
+                    <tr><td colspan="4" style="text-align:center;color:#999;padding:30px;" data-i18n="auditLoading">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="modal-actions" style="margin-top:12px;">
+            <button class="btn btn-secondary" id="btn-close-audit" data-i18n="closeModal">Fermer</button>
+        </div>
+    </div>
+</div>
+
+    <!-- ============================================================
+    SECTION 13: JAVASCRIPT - LOAD IN CORRECT ORDER
+    ============================================================ -->
+    <script src="js/config.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/users.js"></script>
+    <script src="js/audit.js"></script>
+    <script src="js/permissions.js"></script>
+    <script src="js/language-data.js"></script>
+    <script src="js/language.js"></script>
+    <script src="js/dom.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/focus.js"></script>
+    <script src="js/scanner-state.js"></script>
+    <script src="js/scanner-search.js"></script>
+    <script src="js/scanner-barcode.js"></script>
+    <script src="js/scanner-suggestions.js"></script>
+    <script src="js/scanner-setup.js"></script>
+    <script src="js/scanner-main.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/backup.js"></script>
+    <script src="js/cart-state.js"></script>
+    <script src="js/cart-add.js"></script>
+    <script src="js/cart-meter.js"></script>
+    <script src="js/cart-ops.js"></script>
+    <script src="js/cart-render.js"></script>
+    <script src="js/cart-quick.js"></script>
+    <script src="js/cart-router.js"></script>
+    <script src="js/promotions.js"></script>
+    <script src="js/customer-ask.js"></script>
+    <script src="js/transaction.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/product-grid.js"></script>
+    <script src="js/inventory-list.js"></script>
+    <script src="js/inventory-categories.js"></script>
+    <script src="js/inventory-form.js"></script>
+    <script src="js/inventory-delete.js"></script>
+    <script src="js/inventory-edit.js"></script>
+    <script src="js/inventory-exports.js"></script>
+    <script src="js/customers-list.js"></script>
+    <script src="js/customers-select.js"></script>
+    <script src="js/customers-form.js"></script>
+    <script src="js/customers-detail.js"></script>
+    <script src="js/customers-payment.js"></script>
+    <script src="js/customers-debug.js"></script>
+    <script src="js/variants.js"></script>
+    <!-- Analytics - Core + UI + Charts -->
+    <script src="js/analytics-core.js"></script>
+    <script src="js/analytics-ui.js"></script>
+    <script src="js/analytics-charts.js"></script>
+    <script src="js/themes-data.js"></script>
+    <script src="js/themes.js"></script>
+    <script src="js/exports.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/scanner-settings.js"></script>
+    <script src="js/structures.js"></script>
+    <script src="js/classic-pos.js"></script>
+    <script src="js/keyboard.js"></script>
+    <script src="js/button-context.js"></script>
+    <script src="js/qr-code.js"></script>
+    <script src="js/print.js"></script>
+    <script src="js/zreport.js"></script>
+    <script src="js/suppliers.js"></script>
+    <script src="js/app-clock.js"></script>
+    <script src="js/app-update.js"></script>
+    <script src="js/app-setup.js"></script>
+    <script src="js/app-welcome.js"></script>
+    <script src="js/app-init.js"></script>
+    <script src="js/app-bootstrap.js"></script>
+    <script src="js/app-backup.js"></script>
+
+</body>
+</html>
