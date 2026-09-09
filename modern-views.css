@@ -749,7 +749,9 @@ body.structure-alternative.structure-collapsed #current-user-name { display: non
 .hub-add-item { padding: 3px 8px !important; font-size: 11px !important; white-space: nowrap; }
 .hub-body { padding-top: 8px; }
 .hub-bill { border: 1px solid #f0e0e6; border-radius: 10px; margin-bottom: 8px; background: #fff; overflow: hidden; }
-.hub-bill--open { border-color: #c9bdf2; box-shadow: 0 4px 12px rgba(107, 92, 224, 0.10); background: #faf7ff; }
+#supplier-hub-bills .hub-bill:nth-child(odd) { background: #f4f1fe; }
+#supplier-hub-bills .hub-bill:nth-child(even) { background: #fef4f8; }
+#supplier-hub-bills .hub-bill--open { border-color: #c9bdf2; box-shadow: 0 4px 12px rgba(107, 92, 224, 0.10); background: #faf7ff; }
 .hub-bill-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; flex-wrap: wrap; }
 .hub-bill-head:hover { background: #faf7ff; }
 .hub-bill-chevron { display: inline-flex; align-items: center; font-size: 18px; color: #6b5ce0; transition: transform 0.15s ease; }
@@ -778,7 +780,7 @@ body.structure-alternative.structure-collapsed #current-user-name { display: non
 .hub-item-actions .expense-btn { white-space: nowrap; }
 
 /* --- Supplier bill popup (liste produits d'une facture) --- */
-.bill-popup-modal { max-width: 640px; }
+.bill-popup-modal { max-width: 820px; max-height: 92vh; }
 .bill-popup-items .sd-table-row { grid-template-columns: 0.9fr 1.2fr 0.6fr 0.6fr 1.1fr; }
 .bill-popup-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 10px 20px; border-bottom: 1px solid #f0e0e6; font-size: 13px; }
 .bill-popup-meta .hub-bill-total { font-size: 14px; color: var(--primary); }
