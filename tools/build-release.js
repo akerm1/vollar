@@ -81,6 +81,24 @@ function rimrafSync(dir) {
   if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
 }
 
+// True when another process (e.g. VS Code) has the file open in a way that
+// blocks REPLACE/DELETE — same access electron-builder needs to empty the
+// output dir (error: "being used by another process"). A write-open probe is
+// NOT enough (shared write locks still block delete); rename is the exact
+// FILE_SHARE_DELETE probe electron-builder's removal would use.
+function isFileLocked(filePath) {
+  if (!fs.existsSync(filePath)) return false;
+  const probe = filePath + '.lockprobe';
+  try {
+    fs.renameSync(filePath, probe);
+    fs.renameSync(probe, filePath);
+    return false;
+  } catch (e) {
+    try { if (fs.existsSync(probe)) fs.renameSync(probe, filePath); } catch (e2) {}
+    return true;
+  }
+}
+
 function copyFile(src, dest) {
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.copyFileSync(src, dest);
@@ -155,6 +173,28 @@ function stage() {
   OUTPUT_DIR = pkg.build.directories.output;
   syncAppVersion(pkg.version);
   console.log('  Staged: index.html, css, js/, electron/, icons, package.json');
+
+  // VS Code (or anything else) may map win-unpacked/resources/app.asar from a
+  // previous build, which makes electron-builder fail to empty the output dir.
+  // Detect it now and fall back to a temp output dir so the build never breaks.
+  if (process.platform === 'win32' && OUTPUT_DIR) {
+    const lockedAsar = path.join(OUTPUT_DIR, 'win-unpacked', 'resources', 'app.asar');
+    if (fs.existsSync(lockedAsar) && isFileLocked(lockedAsar)) {
+      const fallback = path.join(process.env.TEMP || '.', 'pos-release_' + Date.now());
+      console.log('  ⚠ ' + outputRelative(lockedAsar) + ' is locked by another process (VS Code?).');
+      console.log('  ⚠ Building into ' + fallback + ' instead of ' + OUTPUT_DIR + '.\n');
+      fs.mkdirSync(fallback, { recursive: true });
+      const stagedPkg2 = path.join(STAGING, 'package.json');
+      const pkg2 = JSON.parse(fs.readFileSync(stagedPkg2, 'utf8'));
+      pkg2.build.directories.output = fallback;
+      fs.writeFileSync(stagedPkg2, JSON.stringify(pkg2, null, 2), 'utf8');
+      OUTPUT_DIR = fallback;
+    }
+  }
+}
+
+function outputRelative(p) {
+  return path.relative(ROOT, p) || p;
 }
 
 // ── Obfuscate all JS files ──────────────────────────────────────
