@@ -749,9 +749,19 @@ body.structure-alternative.structure-collapsed #current-user-name { display: non
 .hub-add-item { padding: 3px 8px !important; font-size: 11px !important; white-space: nowrap; }
 .hub-body { padding-top: 8px; }
 .hub-bill { border: 1px solid #f0e0e6; border-radius: 10px; margin-bottom: 8px; background: #fff; overflow: hidden; }
-#supplier-hub-bills .hub-bill:nth-child(odd) { background: #f4f1fe; }
-#supplier-hub-bills .hub-bill:nth-child(even) { background: #fef4f8; }
-#supplier-hub-bills .hub-bill--open { border-color: #c9bdf2; box-shadow: 0 4px 12px rgba(107, 92, 224, 0.10); background: #faf7ff; }
+#supplier-hub-bills .hub-bill[class*="hub-bill-c"] { border-left-width: 5px; }
+#supplier-hub-bills .hub-bill-c0 { background: #dbeafe; border-left-color: #2563eb; }
+#supplier-hub-bills .hub-bill-c1 { background: #fecaca; border-left-color: #dc2626; }
+#supplier-hub-bills .hub-bill-c2 { background: #bbf7d0; border-left-color: #16a34a; }
+#supplier-hub-bills .hub-bill-c3 { background: #fed7aa; border-left-color: #ea580c; }
+#supplier-hub-bills .hub-bill-c4 { background: #f5d0fe; border-left-color: #9333ea; }
+#supplier-hub-bills .hub-bill-c5 { background: #a5f3fc; border-left-color: #0891b2; }
+#supplier-hub-bills .hub-bill-c6 { background: #a7f3d0; border-left-color: #059669; }
+#supplier-hub-bills .hub-bill-c7 { background: #fecdd3; border-left-color: #e11d48; }
+#supplier-hub-bills .hub-bill-c8 { background: #fef08a; border-left-color: #ca8a04; }
+#supplier-hub-bills .hub-bill-c9 { background: #e9d5ff; border-left-color: #7c3aed; }
+#supplier-hub-bills .hub-bill--open { box-shadow: 0 5px 14px rgba(107, 92, 224, 0.22); filter: brightness(1.03); border-left-width: 6px; }
+#supplier-hub-bills .hub-bill-head:hover { background: rgba(255, 255, 255, 0.35); }
 .hub-bill-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; flex-wrap: wrap; }
 .hub-bill-head:hover { background: #faf7ff; }
 .hub-bill-chevron { display: inline-flex; align-items: center; font-size: 18px; color: #6b5ce0; transition: transform 0.15s ease; }

@@ -257,8 +257,8 @@ function _hubRender() {
   (_0h.bills || []).forEach(function (_0bill) {
     const _0m = _hubBillMatch(_0bill, _0q);
     if (!_0m.show) return;
+    _0parts.push(_hubBillHtml(_0bill, _0m, _0shown));
     _0shown++;
-    _0parts.push(_hubBillHtml(_0bill, _0m));
   });
   _0box.innerHTML = _0parts.length
     ? _0parts.join('')
@@ -285,7 +285,7 @@ function _hubBillMatch(_bill, _q) {
   };
 }
 
-function _hubBillHtml(_bill, _m) {
+function _hubBillHtml(_bill, _m, _i) {
   const _0h = window.__hub;
   if (!_0h) return '';
   const _0newMode = _0h.newBillId === _bill.id;
@@ -318,7 +318,7 @@ function _hubBillHtml(_bill, _m) {
     '<button class="expense-btn expense-btn--ghost hub-open-bill" onclick="event.stopPropagation();hubViewBill(' + _bill.id + _0preset + ')" title="' + escapeHtml(t('supplierViewBill')) + '">' + escapeHtml(t('supplierViewBill')) + '</button>' +
     '<button class="expense-btn expense-btn--primary hub-add-item" onclick="event.stopPropagation();hubAddItem(' + _bill.id + ')" title="' + escapeHtml(t('supplierHubAddItem')) + '">' + escapeHtml(t('supplierHubAddItem')) + '</button>';
 
-  return '<div class="hub-bill" data-bill="' + _bill.id + '">' +
+  return '<div class="hub-bill hub-bill-c' + ((_i || 0) % 10) + '" data-bill="' + _bill.id + '">' +
     '<div class="hub-bill-head" onclick="hubToggleBill(' + _bill.id + ')" data-toggle="' + _bill.id + '">' +
       '<span class="hub-bill-chevron">▸</span>' +
       '<div class="hub-bill-labels">' + _0left + '</div>' +
