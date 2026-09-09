@@ -9,6 +9,7 @@
   "scripts": {
     "start": "electron .",
     "dist": "node tools/build-release.js",
+    "release": "node tools/publish-release.js",
     "dist:source": "electron-builder"
   },
   "devDependencies": {
