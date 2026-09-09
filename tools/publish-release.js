@@ -86,7 +86,7 @@ log('  ok ' + TAG + ' est libre.');
 
 // 4. Create + upload
 log('\n🚀 Création de la release ' + TAG + '...');
-const cmd = `"${GH}" release create ${TAG} --repo ${PKG.build.publish.owner}/${PKG.build.publish.repo} --title "Vollar POS ${VERSION}" --notes "Release automatique via npm run release." "${EXE}" "${BLOCKMAP}" "${LATEST}"`;
+const cmd = `"${GH}" release create ${TAG} --repo ${PKG.build.publish.owner}/${PKG.build.publish.repo} --title "Vollar POS ${VERSION}" --notes "Release automatique via npm run release." --latest "${EXE}" "${BLOCKMAP}" "${LATEST}"`;
 
 if (DRY_RUN) {
     log('\n[DRY-RUN] Commande :\n  ' + cmd + '\n');
