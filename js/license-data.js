@@ -1,0 +1,1 @@
+const LICENSE_CONFIG={'appName':'Voyllar','secret':'123xidma1','supportPhone':'+213676139309','supportText':'Contactez-nous\x20pour\x20activer\x20ou\x20renouveler\x20votre\x20licence.','trialDays':0x0};

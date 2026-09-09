@@ -13,10 +13,10 @@
     <link rel="apple-touch-icon" href="icon.svg">
     
      <!-- CSS -->
-           <link rel="stylesheet" href="style.css">
-           <link rel="stylesheet" href="modern-enhancements.css">
-            <link rel="stylesheet" href="modern-views.css">
-            <link rel="stylesheet" href="classic-pos.css">
+           <link rel="stylesheet" href="style.css?v=20260904">
+           <link rel="stylesheet" href="modern-enhancements.css?v=20260904">
+            <link rel="stylesheet" href="modern-views.css?v=20260911">
+            <link rel="stylesheet" href="classic-pos.css?v=20260904">
      <style>
          .toggle-buttons {
             
@@ -43,7 +43,7 @@
     ============================================================ -->
     <div id="lock-screen" class="lock-screen">
         <div class="lock-content">
-            <h2 style="margin-bottom:4px;" data-i18n="appName">🧵 SamtexChabet</h2>
+            <h2 style="margin-bottom:4px;" data-i18n="appName">🧵 Vollar</h2>
             <p id="lock-subtitle" style="margin-bottom:24px;color:rgba(255,255,255,0.7);" data-i18n="lockTitle">Sélectionnez votre profil</p>
             <div id="user-grid" class="user-grid"></div>
             <div id="pin-input-section" style="display:none;">
@@ -53,7 +53,8 @@
                 <div id="pin-error" class="pin-error"></div>
                 <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;">
                     <button class="btn btn-sm" onclick="document.getElementById('pin-input-section').style.display='none';document.getElementById('user-grid').style.display='';" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.3);" data-i18n="back">← Retour</button>
-                    <button class="btn btn-sm" onclick="handleForgotPin()" style="background:none;color:rgba(255,255,255,0.6);border:none;text-decoration:underline;font-size:12px;cursor:pointer;" data-i18n="forgotPassword">🔑 Mot de passe oublié ?</button>
+                    <button class="btn btn-sm" onclick="openRecoveryCodeModal()" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.35);" data-i18n="recoveryCodePath">🔑 Code de récupération</button>
+                    <button class="btn btn-sm" onclick="handleForgotPin()" style="background:none;color:rgba(255,255,255,0.6);border:none;text-decoration:underline;font-size:12px;cursor:pointer;" data-i18n="recoveryAdminPath">👑 Réinitialiser par un administrateur</button>
                 </div>
             </div>
         </div>
@@ -69,7 +70,7 @@
     ============================================================ -->
     <header class="app-header">
         <div class="brand">
-            <span data-i18n="appName">🧵 SamtexChabet</span>
+            <span data-i18n="appName">🧵 Vollar</span>
             <span class="indicator" data-i18n-title="scannerIndicatorTitle" title="Scanner prêt - Double-clic pour réinitialiser"></span>
             <button id="btn-structure-collapse" class="structure-collapse-btn" type="button" title="Réduire / étendre la barre latérale" onclick="toggleStructureCollapse()">☰</button>
         </div>
@@ -78,7 +79,8 @@
             <button class="nav-tab" data-view="inventory" role="tab" title="Stock">📦 Stock</button>
             <button class="nav-tab" data-view="customers" role="tab" title="Clients">👤 Clients</button>
             <button class="nav-tab" data-view="suppliers" role="tab" title="Fournisseurs">🏷️ Fournisseurs</button>
-            <button class="nav-tab" data-view="analytics" role="tab" title="Analytics">📊 Analytics</button>
+            <button class="nav-tab" data-view="expenses" role="tab" title="Dépenses">💸 Dépenses</button>
+            <button class="nav-tab" data-view="analytics" role="tab" title="Statistiques">📊 Statistiques</button>
             <button class="nav-tab" data-view="promotions" role="tab" title="Promotions">🏷️ Promotions</button>
             <button class="nav-tab" data-view="users" role="tab" title="Utilisateurs">🗣️ Utilisateurs</button>
         </nav>
@@ -245,7 +247,7 @@
                         <span class="scanner-text" data-i18n="scannerReady">Scanner actif</span>
                         <button onclick="manualBackup()" style="background:none;border:none;cursor:pointer;font-size:16px;margin-left:8px;" title="Télécharger la sauvegarde" data-i18n-title="downloadBackup">💾</button>
                     </div>
-                    <button class="btn btn-warning btn-sm" id="btn-quick-customer-mode" data-i18n="quickClient">⚡ Client rapide</button>
+                    <button class="btn btn-warning btn-sm" id="btn-quick-customer-mode" data-i18n="fastDepositClient">➕ Déposer client</button>
                 </div>
 
                 <!-- SECTION 5.2: SPLIT CART VIEW -->
@@ -305,13 +307,22 @@
                             </table>
                         </div>
                     </div>
+                     </div>
+
+                <!-- QUICK PRODUCT BOXES (inside checkout-left, below cart) -->
+                <div class="quick-boxes-wrap" id="quick-boxes-wrap">
+                    <div class="quick-boxes-header">
+                        <span class="quick-boxes-title" data-i18n="quickProducts">🛍️ Produits rapides</span>
+                        <button type="button" id="btn-quick-boxes-layer" class="quick-boxes-layer-btn" title="">1 ⇄ 2</button>
+                    </div>
+                    <div class="quick-boxes-row" id="quick-boxes-row"></div>
                 </div>
-            </div>
+                </div>
 
                 <!-- SECTION 5.3: CHECKOUT RIGHT - CONTENU SÉPARÉ, SANS SCROLL -->
-                <div class="checkout-right">
-                    <!-- BLOC: RÉSUMÉ DE LA TRANSACTION -->
-                    <div class="summary-block" id="block-summary">
+                <div class="checkout-right fast-checkout-right">
+                    <!-- BLOC: RÉSUMÉ DE LA TRANSACTION (legacy, masqué) -->
+                    <div class="summary-block" id="block-summary" style="display:none;">
                         <div class="summary-block-title" data-i18n="transactionSummary">🧾 Résumé de la Transaction</div>
                         <!-- LAST SCANNED ITEM -->
                         <div class="last-scanned-item" id="last-scanned-item">
@@ -337,13 +348,13 @@
                         </div>
                     </div>
 
-                    <!-- BLOC: PAIEMENT -->
-                    <div class="summary-block" id="block-payment">
+                    <!-- BLOC: PAIEMENT (legacy, masqué) -->
+                    <div class="summary-block" id="block-payment" style="display:none;">
                         <div class="summary-block-title" data-i18n="paymentSection">💵 Paiement</div>
                         <div class="payment-section">
                             <div class="payment-row">
                                 <label for="amount-paid" data-i18n="amountPaid">Montant payé (DA):</label>
-                                <input type="number" id="amount-paid" value="0" step="0.01" min="0">
+                                <input type="number" id="amount-paid" value="0" step="any" min="0">
                             </div>
                             <div class="payment-row">
                                 <span class="label" data-i18n="remaining">Reste à payer:</span>
@@ -363,26 +374,49 @@
                         </div>
                     </div>
 
-                </div>
-                </div>
-
-                <!-- CHECKOUT ACTION BAR - FULL WIDTH, ALWAYS VISIBLE -->
-                <div class="checkout-action-bar">
-                    <!-- ACTION BUTTONS -->
-                    <div class="action-buttons">
-                        <button class="btn btn-success" id="btn-complete-transaction" data-i18n="completeSale">✅ Finaliser</button>
-                        <button class="btn btn-accent" id="btn-print-receipt" data-i18n="btnPrint">🖨️ Imprimer</button>
-                        <button class="btn btn-secondary" id="btn-clear-cart" data-i18n="clear">🗑 Vider</button>
+                    <!-- BLOC: CLIENTS RAPIDES (nouveau) -->
+                    <div class="fast-clients-area">
+                        <div class="fast-clients-header">
+                            <span class="fast-clients-title">⚡ <span data-i18n="fastClientsTitle">Clients en attente</span></span>
+                            <span class="fast-clients-count-badge" id="fast-client-count">0</span>
+                        </div>
+                        <div class="fast-clients-cols" id="fast-clients-cols"></div>
                     </div>
 
-                    <!-- Printer status -->
-                    <div class="printer-status">
-                        <span data-i18n="printer">🖨️ Imprimante:</span>
-                        <span class="status" id="printer-status" data-i18n="printerReady">✅ Prêt</span>
-                    </div>
-                </div>
-            </div>
-        </section>
+                     <!-- BLOC: ESPÈCES (montant reçu / monnaie) -->
+                     <div class="fast-cash-block">
+                         <div class="fast-cash-title">💵 <span data-i18n="cashBlockTitle">Espèces</span></div>
+                         <div class="fast-cash-row">
+                             <span class="fast-cash-label" data-i18n="receivedMoney">Montant reçu (DA)</span>
+                             <input type="number" id="fast-received" value="" step="any" min="0" inputmode="decimal" placeholder="0.00">
+                         </div>
+                         <div class="fast-preset-row">
+                             <button type="button" class="fast-preset" data-amount="500">500 DA</button>
+                             <button type="button" class="fast-preset" data-amount="1000">1000 DA</button>
+                             <button type="button" class="fast-preset" data-amount="1500">1500 DA</button>
+                             <button type="button" class="fast-preset" data-amount="2000">2000 DA</button>
+                         </div>
+                         <div class="fast-cash-row">
+                             <span class="fast-cash-label" data-i18n="changeDue">Monnaie à rendre</span>
+                             <span class="fast-change" id="fast-change">0.00 DA</span>
+                         </div>
+                     </div>
+
+                     <!-- ACTION BUTTONS (bound to right section) -->
+                     <div class="checkout-action-bar-side">
+                         <div class="action-buttons">
+                             <button class="btn btn-sm btn-success" id="btn-complete-transaction" data-i18n="completeSale">✅ Finaliser</button>
+                             <button class="btn btn-sm btn-accent" id="btn-print-receipt" data-i18n="btnPrint">🖨️ Imprimer</button>
+                             <button class="btn btn-sm btn-secondary" id="btn-clear-cart" data-i18n="clear">🗑 Vider</button>
+                         </div>
+                         <div class="printer-status">
+                             <span data-i18n="printer">🖨️ Imprimante:</span>
+                             <span class="status" id="printer-status" data-i18n="printerReady">✅ Prêt</span>
+                         </div>
+                     </div>
+
+             </div>
+         </section>
 
         <!-- ============================================================
         SECTION 5.9: HIDDEN RECEIPT
@@ -395,85 +429,7 @@
         <section id="view-inventory" class="view" role="tabpanel">
             <!-- SECTION 6.1: INVENTORY LEFT -->
             <div class="inventory-left">
-                <h3 data-i18n="addProduct">➕ Ajouter / Modifier un Produit</h3>
-                <form id="product-form" autocomplete="off">
-                    <div class="form-group">
-                        <label for="form-barcode" data-i18n="barcodeLabel">Code-barres *</label>
-                        <input type="text" id="form-barcode" placeholder="Scanner ou taper le code" data-i18n-placeholder="barcodeScanPlaceholder" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="form-reference" data-i18n="referenceLabel">Code de référence</label>
-                        <input type="text" id="form-reference" placeholder="ex: REF-001" data-i18n-placeholder="referencePlaceholder">
-                    </div>
-                    <div class="form-group">
-                        <label for="form-name" data-i18n="nameLabel">Nom du produit *</label>
-                        <input type="text" id="form-name" placeholder="ex: Mouchoir 50pcs" data-i18n-placeholder="namePlaceholder" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="form-category" data-i18n="categoryLabel">Catégorie</label>
-                        <select id="form-category">
-                            <option value="" data-i18n="selectCategoryPrompt">-- Sélectionner une catégorie --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="form-unit" data-i18n="unitLabel">Unité *</label>
-                        <select id="form-unit" required>
-                            <option value="pièce" data-i18n="pieceOption">Pièce</option>
-                            <option value="mètre" data-i18n="meterOption">Mètre</option>
-                        </select>
-                    </div>
-
-                    <!-- Add this AFTER the Prix field and BEFORE Stock -->
-                    <div class="form-group">
-                        <label for="form-purchase-price" data-i18n="purchasePriceLabel">Prix d'achat (DA) *</label>
-                        <input type="number" id="form-purchase-price" placeholder="0.00" step="0.01" min="0" required>
-                        <span style="font-size:11px;color:#999;" data-i18n="purchasePriceHint">Coût d'achat du produit (pour calculer les bénéfices)</span>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="form-price" data-i18n="priceLabel">Prix (DA) *</label>
-                            <input type="number" id="form-price" placeholder="0.00" step="0.01" min="0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="form-stock" data-i18n="stockLabelInput">Stock *</label>
-                            <!-- FIXED: Allow decimal values for stock (important for meter products) -->
-                            <input type="number" id="form-stock" placeholder="0" step="0.01" min="0" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="form-supplier" data-i18n="supplierLabel">Fournisseur</label>
-                            <select id="form-supplier">
-                                <option value="" data-i18n="noSupplier">-- Aucun fournisseur --</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="form-min-stock" data-i18n="minStockLabel">Stock minimum</label>
-                            <input type="number" id="form-min-stock" value="5" min="0" step="1">
-                        </div>
-                    </div>
-                    <div class="form-row" id="form-batch-row" style="display:none;">
-                        <div class="form-group">
-                            <label for="form-batch-number" data-i18n="batchNumberLabel">N° de lot</label>
-                            <input type="text" id="form-batch-number" placeholder="LOT-001">
-                        </div>
-                        <div class="form-group">
-                            <label for="form-expiry-date" data-i18n="expiryDateLabel">Date de péremption</label>
-                            <input type="date" id="form-expiry-date">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="form-image" data-i18n="imageLabel">Image du produit</label>
-                        <input type="file" id="form-image" accept="image/jpeg,image/png,image/gif,image/webp">
-                        <div id="form-image-preview" class="image-preview"></div>
-                        <span class="field-hint" data-i18n="imageHint">JPG, PNG, GIF, WebP • Max 2 Mo</span>
-                    </div>
-                    <div style="display:flex;gap:10px;margin-top:8px;">
-                        <button type="submit" class="btn btn-primary" style="flex:2;" data-i18n="save">💾 Enregistrer</button>
-                        <button type="reset" class="btn btn-secondary" style="flex:1;" data-i18n="clearForm">Effacer</button>
-                    </div>
-                    <div id="form-feedback" style="margin-top:12px;font-size:14px;min-height:24px;"></div>
-                </form>
+                <h3 data-i18n="stockManagementTitle">📦 Stock</h3>
 
                 <!-- CATEGORY MANAGEMENT SECTION -->
                 <div style="margin-top:20px;padding-top:16px;border-top:2px solid #f0f0f0;">
@@ -487,10 +443,6 @@
                     <div id="categories-list" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;min-height:40px;">
                         <span style="color:#999;font-size:13px;" data-i18n="loadingCategories">Chargement des catégories...</span>
                     </div>
-                </div>
-
-                <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
-                    <button class="btn btn-danger" id="btn-bulk-delete" style="width:100%;" data-i18n="deleteAllProducts">⚠️ Supprimer tous les produits</button>
                 </div>
             </div>
 
@@ -529,12 +481,13 @@
                                 <th data-i18n="tableProfitUnit">Profit/unité</th>
                                 <th data-i18n="tableMargin">Marge</th>
                                 <th data-i18n="tableStock">Stock</th>
+                                <th data-i18n="tableSupplier">Fournisseur</th>
                                 <th style="width:100px;" data-i18n="tableActions">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="inventory-table-body">
                             <tr>
-                                <td colspan="11" style="text-align:center;color:#999;padding:40px 0;" data-i18n="noProductsInCatalog">Aucun produit dans le catalogue</td>
+                                <td colspan="12" style="text-align:center;color:#999;padding:40px 0;" data-i18n="noProductsInCatalog">Aucun produit dans le catalogue</td>
                             </tr>
                         </tbody>
                     </table>
@@ -595,110 +548,250 @@
         SECTION 8: VIEW - SUPPLIERS & PURCHASES
         ============================================================ -->
         <section id="view-suppliers" class="view" role="tabpanel">
-            <div class="suppliers-container" style="display:flex;gap:24px;flex-wrap:wrap;">
-                <!-- LEFT: Supplier CRUD -->
-                <div class="suppliers-left" style="flex:1;min-width:300px;">
-                    <h3 style="font-size:18px;color:var(--primary);margin-bottom:16px;" data-i18n="supplierManagement">🏷️ Gestion des Fournisseurs</h3>
-                    <form id="supplier-form" autocomplete="off">
-                        <div class="form-group">
-                            <label for="supplier-name" data-i18n="supplierNameLabel">Nom du fournisseur *</label>
-                            <input type="text" id="supplier-name" placeholder="ex: Import Tlemcen" required>
+            <div class="suppliers-layout">
+                <div class="suppliers-container">
+                    <!-- LEFT: Supplier CRUD card -->
+                    <div class="suppliers-left">
+                        <div class="clean-card supplier-form-card">
+                            <div class="clean-card-title" data-i18n="supplierFormTitle">Ajouter / modifier un fournisseur</div>
+                            <form id="supplier-form" autocomplete="off">
+                                <div class="form-group">
+                                    <label for="supplier-name" data-i18n="supplierNameLabel">Nom du fournisseur *</label>
+                                    <input type="text" id="supplier-name" placeholder="ex: Import Tlemcen" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="supplier-phone" data-i18n="supplierPhone">Téléphone</label>
+                                    <input type="text" id="supplier-phone" placeholder="0555 00 00 00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="supplier-address" data-i18n="supplierAddress">Adresse</label>
+                                    <input type="text" id="supplier-address" placeholder="ex: Rue Didouche Mourad, Alger">
+                                </div>
+                                <div class="form-group">
+                                    <label for="supplier-email" data-i18n="supplierEmail">Email (optionnel)</label>
+                                    <input type="email" id="supplier-email" placeholder="contact@fournisseur.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="supplier-nif" data-i18n="supplierNif">NIF / NIS (optionnel)</label>
+                                    <input type="text" id="supplier-nif" placeholder="Numéro fiscal" data-i18n-placeholder="supplierNifPlaceholder">
+                                </div>
+                                <div class="supplier-form-actions">
+                                    <button type="submit" class="btn btn-primary supplier-save-btn" id="btn-save-supplier" data-i18n="save">💾 Enregistrer</button>
+                                    <button type="reset" class="btn btn-secondary supplier-reset-btn" id="btn-reset-supplier" data-i18n="clearForm">Effacer</button>
+                                </div>
+                                <div id="supplier-feedback" class="supplier-feedback"></div>
+                            </form>
                         </div>
-                        <div class="form-group">
-                            <label for="supplier-phone" data-i18n="supplierPhone">Téléphone</label>
-                            <input type="text" id="supplier-phone" placeholder="0555 00 00 00">
-                        </div>
-                        <div class="form-group">
-                            <label for="supplier-address" data-i18n="supplierAddress">Adresse</label>
-                            <input type="text" id="supplier-address" placeholder="ex: Rue Didouche Mourad, Alger">
-                        </div>
-                        <div class="form-group">
-                            <label for="supplier-email" data-i18n="supplierEmail">Email (optionnel)</label>
-                            <input type="email" id="supplier-email" placeholder="contact@fournisseur.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="supplier-nif" data-i18n="supplierNif">NIF / NIS (optionnel)</label>
-                            <input type="text" id="supplier-nif" placeholder="Numéro fiscal" data-i18n-placeholder="supplierNifPlaceholder">
-                        </div>
-                        <div style="display:flex;gap:10px;margin-top:8px;">
-                            <button type="submit" class="btn btn-primary" style="flex:2;" id="btn-save-supplier" data-i18n="save">💾 Enregistrer</button>
-                            <button type="reset" class="btn btn-secondary" style="flex:1;" id="btn-reset-supplier" data-i18n="clearForm">Effacer</button>
-                        </div>
-                        <div id="supplier-feedback" style="margin-top:12px;font-size:14px;min-height:24px;"></div>
-                    </form>
+                    </div>
 
-                    <!-- LOW STOCK ALERT PANEL -->
-                    <div style="flex:1;display:flex;flex-direction:column;margin-top:24px;padding-top:16px;border-top:2px solid #f0e0e0;">
-                        <h4 style="font-size:16px;color:var(--danger);margin-bottom:12px;" data-i18n="lowStockAlerts">⚠️ Alertes Stock Bas</h4>
-                        <div id="low-stock-panel" style="flex:1;min-height:0;overflow-y:auto;border-radius:8px;border:1px solid #f0e0e0;">
-                            <div style="text-align:center;color:#999;padding:20px;" data-i18n="loading">Chargement...</div>
+                    <!-- RIGHT: Supplier List -->
+                    <div class="suppliers-right">
+                        <div class="suppliers-toolbar">
+                            <div class="search-box suppliers-search">
+                                <input type="text" id="supplier-search" placeholder="🔍 Rechercher un fournisseur..." data-i18n-placeholder="supplierSearchPlaceholder">
+                            </div>
+                            <button type="button" class="btn btn-secondary supplier-action-btn" id="btn-add-standalone-product" data-i18n="addProductWithoutSupplier">➕ Nouveau produit</button>
+                        </div>
+                        <div id="suppliers-list" class="suppliers-list-body">
+                            <div style="text-align:center;color:#999;padding:20px;" data-i18n="noSuppliers">Aucun fournisseur</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+        SECTION 8.5: VIEW - EXPENSES (DÉPENSES)
+        ============================================================ -->
+        <section id="view-expenses" class="view expense-view" role="tabpanel">
+            <div class="expense-shell">
+                <!-- HERO HEADER -->
+                <div class="expense-hero">
+                    <div class="expense-hero-glow"></div>
+                    <div class="expense-hero-top">
+                        <div class="expense-hero-title">
+                            <span class="expense-hero-icon">💸</span>
+                            <div>
+                                <h3 data-i18n="expenseTitle">Gestion des Dépenses</h3>
+                                <p data-i18n="expenseSubtitle">Suivez, maîtrisez et optimisez vos sorties d'argent.</p>
+                            </div>
+                        </div>
+                        <button class="expense-hero-btn" id="btn-export-expenses" data-i18n="expenseExportCsv">📤 Exporter CSV</button>
+                    </div>
+
+                    <!-- STAT CARDS -->
+                    <div class="expense-stats">
+                        <div class="expense-stat">
+                            <span class="expense-stat-ic">📅</span>
+                            <div>
+                                <span class="expense-stat-label" data-i18n="expenseToday">Aujourd'hui</span>
+                                <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpToday">?</span>
+                                <span class="expense-stat-value" id="expense-summary-today">0.00 DA</span>
+                            </div>
+                        </div>
+                        <div class="expense-stat">
+                            <span class="expense-stat-ic">📈</span>
+                            <div>
+                                <span class="expense-stat-label" data-i18n="expenseThisMonth">Ce mois</span>
+                                <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpMonth">?</span>
+                                <span class="expense-stat-value" id="expense-summary-month">0.00 DA</span>
+                            </div>
+                        </div>
+                        <div class="expense-stat expense-stat--danger">
+                            <span class="expense-stat-ic">🏦</span>
+                            <div>
+                                <span class="expense-stat-label" data-i18n="expenseTotal">Total dépenses</span>
+                                <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpTotal">?</span>
+                                <span class="expense-stat-value" id="expense-summary-total">0.00 DA</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- RIGHT: Supplier List -->
-                <div class="suppliers-right" style="flex:1;min-width:300px;">
-                    <div class="search-box" style="margin-bottom:12px;">
-                        <input type="text" id="supplier-search" placeholder="🔍 Rechercher un fournisseur..." data-i18n-placeholder="supplierSearchPlaceholder" style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;border-radius:var(--radius-sm);font-size:14px;font-family:var(--font-family);">
-                    </div>
-                    <div id="suppliers-list" style="flex:1;min-height:0;overflow-y:auto;border-radius:8px;border:1px solid #e0e0e0;">
-                        <div style="text-align:center;color:#999;padding:20px;" data-i18n="noSuppliers">Aucun fournisseur</div>
-                    </div>
+                <!-- GRID BODY -->
+                <div class="expense-grid">
 
-                    <!-- PURCHASE ORDERS (BONS DE RÉCEPTION) -->
-                    <div style="margin-top:24px;padding-top:16px;border-top:2px solid #f0f0f0;">
-                        <h3 style="font-size:18px;color:var(--primary);margin-bottom:16px;" data-i18n="receptionTitle">📦 Bon de Réception</h3>
-                        <form id="reception-form" autocomplete="off">
-                            <div class="form-row">
-                                <div class="form-group" style="flex:2;">
-                                    <label for="reception-supplier" data-i18n="receptionSupplier">Fournisseur *</label>
-                                    <select id="reception-supplier" required>
-                                        <option value="" data-i18n="receptionSelectPrompt">-- Sélectionner --</option>
-                                    </select>
+                    <!-- COLUMN 1 : ADD EXPENSE -->
+                    <div class="expense-card">
+                        <div class="expense-card-head">
+                            <span class="expense-card-ic">➕</span>
+                            <span data-i18n="expenseAddTitle">Nouvelle dépense</span>
+                            <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpAdd">?</span>
+                        </div>
+                        <form id="expense-form" class="expense-form" autocomplete="off">
+                            <div class="expense-form-row">
+                                <div class="expense-field">
+                                    <label for="expense-date" data-i18n="expenseDate">Date *</label>
+                                    <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpDate">?</span>
+                                    <input type="date" id="expense-date" required>
                                 </div>
-                                <div class="form-group" style="flex:1;">
-                                    <label for="reception-date" data-i18n="receptionDate">Date *</label>
-                                    <input type="date" id="reception-date" required>
+                                <div class="expense-field">
+                                    <label for="expense-amount" data-i18n="expenseAmount">Montant (DA) *</label>
+                                    <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpAmount">?</span>
+                                    <input type="number" id="expense-amount" step="any" min="0.01" placeholder="0.00" required>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label for="reception-invoice" data-i18n="receptionInvoice">N° Facture / Référence</label>
-                                <input type="text" id="reception-invoice" placeholder="Facture fournisseur (optionnel)" data-i18n-placeholder="receptionInvoicePlaceholder">
+                            <div class="expense-field">
+                                <label for="expense-category" data-i18n="expenseCategory">Catégorie *</label>
+                                <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpCategory">?</span>
+                                <select id="expense-category" required>
+                                    <!-- options populated by JS -->
+                                </select>
                             </div>
-
-                            <h4 style="font-size:14px;color:#555;margin:12px 0 8px 0;" data-i18n="receptionItems">Articles reçus</h4>
-                            <div id="reception-items-container" style="max-height:250px;overflow-y:auto;border:1px solid #f0f0f0;border-radius:8px;padding:8px;">
-                                <!-- Item rows added dynamically -->
+                            <div class="expense-field" id="expense-category-other-row" style="display:none;">
+                                <label for="expense-category-other" data-i18n="expenseOtherCategory">Autre catégorie</label>
+                                <input type="text" id="expense-category-other" placeholder="Ex: Frais bancaires">
                             </div>
-                            <div style="display:flex;gap:8px;margin-top:8px;">
-                                <button type="button" class="btn btn-sm btn-primary" id="btn-add-reception-item" style="font-size:12px;" data-i18n="addReceptionItem">➕ Ajouter un article</button>
+                            <div class="expense-field">
+                                <label for="expense-payment" data-i18n="expensePaymentMethod">Moyen de paiement</label>
+                                <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpPayment">?</span>
+                                <select id="expense-payment">
+                                    <option value="Espèces">Espèces</option>
+                                    <option value="Carte">Carte</option>
+                                    <option value="Virement">Virement</option>
+                                    <option value="Chèque">Chèque</option>
+                                    <option value="Crédit">Crédit</option>
+                                </select>
                             </div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;">
-                                <div style="font-weight:700;font-size:15px;color:var(--primary);">
-                                    Total: <span id="reception-total">0.00</span> DA
+                            <div class="expense-field">
+                                <label for="expense-beneficiary" data-i18n="expenseBeneficiary">Bénéficiaire / Fournisseur</label>
+                                <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpBeneficiary">?</span>
+                                <input type="text" id="expense-beneficiary" placeholder="ex: SONELGAZ, fournisseur..." data-i18n-placeholder="expenseBeneficiaryPlaceholder">
+                            </div>
+                            <div class="expense-recur">
+                                <label for="expense-recurrence" data-i18n="expenseRecurFrequency">🔁 Récurrence</label>
+                                <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpRecurrence">?</span>
+                                <select id="expense-recurrence">
+                                    <option value="none" data-i18n="expenseRecurNone">Une seule fois</option>
+                                    <option value="daily" data-i18n="expenseRecurDaily">Quotidienne</option>
+                                    <option value="weekly" data-i18n="expenseRecurWeekly">Hebdomadaire</option>
+                                    <option value="monthly" data-i18n="expenseRecurMonthly">Mensuelle</option>
+                                </select>
+                                <div class="expense-recur-sub" id="expense-recur-weekly-row" style="display:none;">
+                                    <span class="expense-recur-label" data-i18n="expenseRecurWeeklyDays">Jours de la semaine :</span>
+                                    <div class="expense-recur-days" id="expense-recur-days">
+                                        <button type="button" class="expense-day-chip" data-day="1" data-i18n="dayMon">Lun</button>
+                                        <button type="button" class="expense-day-chip" data-day="2" data-i18n="dayTue">Mar</button>
+                                        <button type="button" class="expense-day-chip" data-day="3" data-i18n="dayWed">Mer</button>
+                                        <button type="button" class="expense-day-chip" data-day="4" data-i18n="dayThu">Jeu</button>
+                                        <button type="button" class="expense-day-chip" data-day="5" data-i18n="dayFri">Ven</button>
+                                        <button type="button" class="expense-day-chip" data-day="6" data-i18n="daySat">Sam</button>
+                                        <button type="button" class="expense-day-chip" data-day="7" data-i18n="daySun">Dim</button>
+                                    </div>
                                 </div>
-                                <button type="submit" class="btn btn-success" id="btn-save-reception" data-i18n="saveReception">✅ Enregistrer la réception</button>
+                                <div class="expense-recur-sub" id="expense-recur-monthly-row" style="display:none;">
+                                    <span class="expense-recur-label" data-i18n="expenseRecurMonthlyDay">Jour du mois :</span>
+                                    <input type="number" id="expense-recur-day" min="1" max="31" value="1">
+                                </div>
+                            </div>
+                            <div class="expense-field">
+                                <label for="expense-description" data-i18n="expenseDescription">Description</label>
+                                <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpDescription">?</span>
+                                <textarea id="expense-description" rows="2" placeholder="Détail de la dépense (optionnel)" data-i18n-placeholder="expenseDescriptionPlaceholder"></textarea>
+                            </div>
+                            <div class="expense-form-actions">
+                                <button type="submit" class="expense-btn expense-btn--primary" id="btn-save-expense" data-i18n="expenseSaveBtn">💾 Enregistrer la dépense</button>
+                                <button type="reset" class="expense-btn expense-btn--ghost" id="btn-reset-expense" data-i18n="clearForm">Effacer</button>
                             </div>
                         </form>
+
+                        <!-- AVERTISSEMENT AFFECTATION PROFIT -->
+                        <label class="expense-affect">
+                            <input type="checkbox" id="expense-affect-profit">
+                            <span class="expense-switch expense-switch--mini"></span>
+                            <span data-i18n="expenseAffectProfit">➗ Déduire les dépenses du profit net (analytics + rapport Z)</span>
+                            <span class="expense-help expense-help--inline" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpAffectProfit">?</span>
+                        </label>
                     </div>
 
-                    <!-- PURCHASE HISTORY -->
-                    <div style="margin-top:24px;padding-top:16px;border-top:2px solid #f0f0f0;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                            <h3 style="font-size:18px;color:var(--primary);" data-i18n="purchaseHistory">📋 Historique des Réceptions</h3>
-                            <div style="display:flex;gap:8px;align-items:center;">
-                                <select id="purchase-filter-supplier" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;">
-                                    <option value="" data-i18n="allSuppliersFilter">Tous les fournisseurs</option>
-                                </select>
-                                <input type="date" id="purchase-filter-from" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;">
-                                <input type="date" id="purchase-filter-to" style="padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;">
-                                <button type="button" class="btn btn-sm btn-primary" id="btn-filter-purchases" style="font-size:12px;">🔍</button>
-                            </div>
+                    <!-- MIDDLE : CATEGORIES -->
+                    <div class="expense-card">
+                        <div class="expense-card-head">
+                            <span class="expense-card-ic">🗂️</span>
+                            <span data-i18n="expenseCategoriesTitle">Catégories</span>
+                            <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpCategories">?</span>
                         </div>
-                        <div id="purchase-history-container" style="max-height:400px;overflow-y:auto;border-radius:8px;border:1px solid #f0f0f0;">
-                            <div style="text-align:center;color:#999;padding:20px;" data-i18n="noReception">Aucune réception</div>
+                        <div class="expense-cat-add">
+                            <input type="text" id="input-expense-new-category" placeholder="Nouvelle catégorie..." data-i18n-placeholder="expenseNewCategoryPlaceholder">
+                            <button class="expense-chip-btn" id="btn-add-expense-category" title="Ajouter"><span>+</span></button>
+                        </div>
+                        <div id="expense-category-list" class="expense-cat-list"></div>
+
+                        <!-- DAY VIEW -->
+                        <div class="expense-card-head expense-card-head--sm">
+                            <span class="expense-card-ic">📅</span>
+                            <span data-i18n="expenseDayTitle">Dépenses d'un jour</span>
+                            <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpDay">?</span>
+                        </div>
+                        <div class="expense-day-row">
+                            <input type="date" id="expense-day-picker">
+                            <button class="expense-btn expense-btn--ghost" id="btn-day-today" data-i18n="expenseDayToday">Aujourd'hui</button>
+                        </div>
+                        <div id="expense-day-detail" class="expense-day-detail">
+                            <div class="expense-empty">Choisissez une date pour voir les dépenses du jour.</div>
                         </div>
                     </div>
+
+                    <!-- RIGHT : HISTORY -->
+                    <div class="expense-card expense-card--wide">
+                        <!-- HISTORY -->
+                        <div class="expense-card-head expense-card-head--sm">
+                            <span class="expense-card-ic">📋</span>
+                            <span data-i18n="expenseHistoryTitle">Historique des dépenses</span>
+                            <span class="expense-help" onclick="expenseHelpToggle(this)" data-help-key="expenseHelpHistory">?</span>
+                        </div>
+                        <div class="expense-filters">
+                            <input type="date" id="expense-filter-from" title="Du">
+                            <input type="date" id="expense-filter-to" title="Au">
+                            <select id="expense-filter-category">
+                                <option value="" data-i18n="expenseAllCategories">Toutes les catégories</option>
+                            </select>
+                        </div>
+                        <div id="expenses-list" class="expense-history">
+                            <div class="expense-empty" data-i18n="noExpenses">Aucune dépense</div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -769,7 +862,7 @@
                         </button>
                     </nav>
                     <div class="settings-sidebar-foot">
-                        <span>SamtexChabet POS</span>
+                        <span>Vollar POS</span>
                         <span class="version-pill">v1.0.0</span>
                     </div>
                 </aside>
@@ -799,6 +892,15 @@
                                     <div class="form-group">
                                         <label for="settings-shop-name">Nom du magasin <span class="help-icon">ⓘ<span class="tooltip-text">Nom affiché sur les tickets et dans l'en-tête de l'application</span></span></label>
                                         <input type="text" id="settings-shop-name" placeholder="Mon Magasin">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-business-domain" data-i18n="settingsBusinessDomain">🏢 Type d'activité <span class="help-icon">ⓘ<span class="tooltip-text" data-i18n="settingsBusinessDomainHelp">Adapte les tableaux et rapports analytiques au type d'activité</span></span></label>
+                                        <select id="settings-business-domain">
+                                            <option value="retail" data-i18n="businessDomainRetail">Magasin / Commerce de détail</option>
+                                            <option value="restaurant" data-i18n="businessDomainRestaurant">Restaurant / Café</option>
+                                            <option value="services" data-i18n="businessDomainServices">Services / Prestations</option>
+                                            <option value="wholesale" data-i18n="businessDomainWholesale">Grossiste / Semi-gros</option>
+                                        </select>
                                     </div>
                                     <div class="form-group">
                                         <label for="settings-shop-phone">Téléphone</label>
@@ -864,7 +966,7 @@
                                 <div class="settings-form-grid">
                                     <div class="form-group">
                                         <label for="settings-vat">Taux TVA (%) <span class="help-icon">ⓘ<span class="tooltip-text">Pourcentage de TVA appliqué sur les prix (ex: 19%)</span></span></label>
-                                        <input type="number" id="settings-vat" value="19" step="0.1" min="0" max="100">
+                                        <input type="number" id="settings-vat" value="19" step="any" min="0" max="100">
                                     </div>
                                     <div class="form-group">
                                         <label for="settings-vat-inclusive">Prix TTC <span class="help-icon">ⓘ<span class="tooltip-text">HT : TVA ajoutée au prix. TTC : TVA déjà incluse dans le prix</span></span></label>
@@ -879,7 +981,7 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="settings-opening-float">Fond de caisse (DA) <span class="help-icon">ⓘ<span class="tooltip-text">Montant de monnaie disponible en caisse en début de journée</span></span></label>
-                                        <input type="number" id="settings-opening-float" value="0" step="100" min="0">
+                                        <input type="number" id="settings-opening-float" value="0" step="any" min="0">
                                     </div>
                                 </div>
                             </div>
@@ -1123,13 +1225,25 @@
                                               <span class="toggle-name">Demander client</span>
                                               <span class="toggle-desc">Affiche une invite pour sélectionner un client avant chaque nouvelle vente</span>
                                           </div>
-                                          <div class="toggle-buttons">
-                                              <label class="toggle-label">
-                                                  <input type="checkbox" data-setting="askCustomerEnabled" onchange="setToggle('askCustomerEnabled', this.checked)">
-                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                                              </label>
-                                          </div>
-                                      </div>
+<div class="toggle-buttons">
+                                               <label class="toggle-label">
+                                                   <input type="checkbox" data-setting="askCustomerEnabled" onchange="setToggle('askCustomerEnabled', this.checked)">
+                                                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                               </label>
+                                           </div>
+                                       </div>
+                                       <div class="settings-toggle-row">
+                                           <div class="toggle-text">
+                                               <span class="toggle-name" data-i18n="quickBoxesEnabled">Produits rapides (24 cases)</span>
+                                               <span class="toggle-desc" data-i18n="quickBoxesEnabledDesc">Affiche une rangée de 24 produits rapides en tête de caisse. Cliquez sur une case vide (+) ou sur ✎ pour choisir un produit, ✕ pour la vider.</span>
+                                           </div>
+                                           <div class="toggle-buttons">
+                                               <label class="toggle-label">
+                                                   <input type="checkbox" data-setting="quickBoxesEnabled" onchange="setToggle('quickBoxesEnabled', this.checked)">
+                                                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                               </label>
+                                           </div>
+                                       </div>
                                       <div class="settings-toggle-row">
                                           <div class="toggle-text">
                                               <span class="toggle-name">Suivi lots / dates</span>
@@ -1616,7 +1730,65 @@
                                               </label>
                                           </div>
                                       </div>
-                                 </div>
+                                  </div>
+                             </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🕐</span>
+                                        Export Automatique Horaire
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="hourlyExport">Export horaire</span>
+                                            <span class="toggle-desc" data-i18n="hourlyExportDesc">Sauvegarde automatique horaire vers un dossier choisi</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="hourlyExportEnabled" onchange="setToggle('hourlyExportEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="hourlyExportFolder">Dossier d'export</span>
+                                            <span class="toggle-desc" id="hourly-export-path-display" data-i18n="hourlyExportFolderNone">Non configuré</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="pickHourlyExportFolder()" data-i18n="hourlyExportPickFolderBtn">📁 Choisir le dossier d'export</button>
+                                        </div>
+                                    </div>
+                                    <div class="settings-form-grid">
+                                        <div class="form-group">
+                                            <label for="settings-hourly-export-interval" data-i18n="hourlyExportInterval">Intervalle (min)</label>
+                                            <select id="settings-hourly-export-interval" onchange="saveHourlyExportPrefs()">
+                                                <option value="30">30 min</option>
+                                                <option value="60" selected>1 heure</option>
+                                                <option value="120">2 heures</option>
+                                                <option value="240">4 heures</option>
+                                                <option value="360">6 heures</option>
+                                                <option value="720">12 heures</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="settings-hourly-export-retention" data-i18n="hourlyExportRetention">Rétention (jours)</label>
+                                            <select id="settings-hourly-export-retention" onchange="saveHourlyExportPrefs()">
+                                                <option value="7">7 jours</option>
+                                                <option value="14">14 jours</option>
+                                                <option value="30" selected>30 jours</option>
+                                                <option value="60">60 jours</option>
+                                                <option value="90">90 jours</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="settings-info-row" id="hourly-export-status" style="font-size:12px;color:var(--muted,#888);margin-top:10px;">
+                                        <span data-i18n="hourlyExportStatusOff">Export horaire DÉSACTIVÉ</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="settings-card">
@@ -1716,6 +1888,35 @@
                                             <span class="stat-value">1.0.0</span>
                                         </div>
                                     </div>
+                                    <div style="margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                        <button type="button" id="btn-open-data-folder" class="btn btn-secondary">
+                                            📂 Ouvrir le dossier des données
+                                        </button>
+                                        <span id="data-folder-path" style="font-size:11px;color:#888;word-break:break-all;"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🔐</span>
+                                        Sécurité / Connexion
+                                    </div>
+                                </div>
+                                 <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="skipLoginToggleName">Désactiver l'écran de connexion</span>
+                                            <span class="toggle-desc" data-i18n="skipLoginToggleDesc">Ouvre l'application directement sans écran de connexion (utilisateurs/PIN). Désactivé par défaut.</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="skipLoginEnabled" onchange="setToggle('skipLoginEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1744,6 +1945,27 @@
                                         <button class="btn btn-primary" id="btn-optimize-db">⚡ Optimiser DB</button>
                                         <button class="btn btn-secondary" id="btn-clear-cache">🧹 Vider cache</button>
                                         <button class="btn btn-secondary" id="btn-export-logs">📋 Exporter logs</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">🆕</span>
+                                        <span data-i18n="settingsUpdateSection">Mise à jour de l'application</span>
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="updateStatusLabel">Statut des mises à jour</span>
+                                            <span class="toggle-desc" id="update-status-text">—</span>
+                                        </div>
+                                    </div>
+                                    <div class="btn-row" style="margin-top:12px;">
+                                        <button class="btn btn-secondary" id="btn-check-updates" data-i18n="updateCheckNow">↻ Vérifier les mises à jour</button>
+                                        <button class="btn btn-primary" id="btn-install-update" style="display:none;" data-i18n="updateInstallNowBtn">🚀 Redémarrer et installer</button>
                                     </div>
                                 </div>
                             </div>
@@ -1786,6 +2008,23 @@
                 <div id="users-admin-section">
                     <h3 style="margin-bottom:12px;" data-i18n="usersManagement">🗣️ Gestion des utilisateurs</h3>
                     <button class="btn btn-primary" id="btn-create-user" style="margin-bottom:12px;" data-i18n="addUser">➕ Ajouter un utilisateur</button>
+                    <div id="recovery-code-panel" style="display:none;background:#fff8e1;border:1px solid #f9e6a6;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+                        <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap;">
+                            <div>
+                                <strong style="font-size:14px;" data-i18n="recoveryPanelTitle">🔑 Code de récupération du PIN</strong>
+                                <p style="font-size:12px;color:#666;margin:4px 0 0;" data-i18n="recoveryPanelDesc">Permet de réinitialiser le PIN de n'importe quel profil (y compris l'administrateur) depuis l'écran de verrouillage. Régénérer un code invalide l'ancien.</p>
+                                <div id="recovery-code-state" style="font-size:12px;font-weight:600;margin-top:6px;color:#8a6d1a;"></div>
+                            </div>
+                            <button class="btn btn-sm btn-warning" id="btn-recovery-regenerate" onclick="regenerateRecoveryCode()" data-i18n="recoveryRegenerate">🔄 Régénérer le code</button>
+                        </div>
+                        <div id="recovery-code-reveal" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed #e0c870;">
+                            <p style="font-size:12px;font-weight:600;margin-bottom:4px;color:#8a6d1a;">Nouveau code (ne sera plus jamais affiché) :</p>
+                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                <code id="recovery-code-new" style="font-size:16px;letter-spacing:1px;background:#fff;border:1px solid #e0c870;padding:6px 10px;border-radius:6px;font-weight:700;"></code>
+                                <button class="btn btn-sm btn-primary" onclick="copyRecoveryCodeFromPanel()" data-i18n="recoveryCopyBtn">📋 Copier le code</button>
+                            </div>
+                        </div>
+                    </div>
                     <div id="users-list"></div>
                     <div style="margin-top:24px;padding-top:20px;border-top:2px solid #f0f0f0;">
                         <h4 style="font-size:16px;color:var(--primary);margin-bottom:12px;" data-i18n="activityLog">📋 Historique des activités</h4>
@@ -1826,10 +2065,15 @@
     <div class="modal-overlay" id="edit-modal">
         <div class="modal">
             <h3 data-i18n="editProductModal">✏️ Modifier le produit</h3>
-            <form id="edit-product-form">
+            <form id="edit-product-form" novalidate>
                 <div class="form-group">
                     <label data-i18n="barcodeLabel">Code-barres *</label>
                     <input type="text" id="edit-barcode" required>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="extraBarcodesLabel">Barcodes supplémentaires</label>
+                    <div id="edit-extra-barcodes-rows"></div>
+                    <button type="button" id="btn-add-edit-barcode" class="btn btn-secondary" style="margin-top:4px;font-size:13px;">+ <span data-i18n="extraBarcodeAdd">Ajouter un barcode</span></button>
                 </div>
                 <div class="form-group">
                     <label data-i18n="referenceLabel">Code de référence</label>
@@ -1855,17 +2099,17 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label data-i18n="priceLabel">Prix (DA) *</label>
-                        <input type="number" id="edit-price" step="0.01" min="0" required>
+                        <input type="number" id="edit-price" step="any" min="0" required>
                     </div>
                     <div class="form-group">
                         <!-- FIXED: Allow decimal values for stock in edit modal -->
                         <label data-i18n="stockLabelInput">Stock *</label>
-                        <input type="number" id="edit-stock" step="0.01" min="0" required>
+                        <input type="number" id="edit-stock" step="any" min="0" required>
                     </div>
                 </div>
                 <div class="form-group">
                     <label data-i18n="purchasePriceLabel">Prix d'achat (DA) *</label>
-                    <input type="number" id="edit-purchase-price" step="0.01" min="0" required>
+                    <input type="number" id="edit-purchase-price" step="any" min="0" required>
                     <span style="font-size:11px;color:#999;" data-i18n="purchasePriceHint">Coût d'achat du produit</span>
                 </div>
                 <div class="form-row">
@@ -1877,7 +2121,7 @@
                     </div>
                     <div class="form-group">
                         <label data-i18n="minStockLabel">Stock minimum</label>
-                        <input type="number" id="edit-min-stock" value="5" min="0" step="1">
+                        <input type="number" id="edit-min-stock" value="5" min="0" step="any">
                     </div>
                 </div>
                 <div class="form-row" id="edit-batch-row" style="display:none;">
@@ -1888,6 +2132,30 @@
                     <div class="form-group">
                         <label data-i18n="expiryDateLabel">Date de péremption</label>
                         <input type="date" id="edit-expiry-date">
+                    </div>
+                </div>
+                <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #ddd;">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600;color:#333;font-size:13px;">
+                        <input type="checkbox" id="edit-pack-toggle">
+                        <span data-i18n="packConversionToggle">Ce produit peut être ouvert en unités</span>
+                    </label>
+                    <div id="edit-pack-fields" style="display:none;margin-top:10px;padding-left:24px;">
+                        <div class="form-group">
+                            <label data-i18n="packUnitSubName">Nom de l'unité (sous-produit)</label>
+                            <input type="text" id="edit-unit-name" placeholder="Suggestion automatique">
+                            <span class="field-hint" data-i18n="packUnitNameSuggestionHint">Une suggestion est proposée automatiquement — modifiable</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="packConversionUnitsPerPack">Unités par paquet</label>
+                                <input type="number" id="edit-units-per-pack" min="1" step="any" value="1">
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="packUnitPrice">Prix unité (DA)</label>
+                                <input type="number" id="edit-unit-price" step="any" min="0" placeholder="0.00">
+                                <span class="field-hint" data-i18n="packUnitPriceHint">À saisir (ex : prix du paquet ÷ unités)</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1936,11 +2204,11 @@ SECTION 11.5: MODAL - VARIANT MANAGEMENT
             <div class="form-row">
                 <div class="form-group">
                     <label data-i18n="variantPrice">Prix (DA, optionnel)</label>
-                    <input type="number" id="variant-price" step="0.01" min="0" placeholder="0.00">
+                    <input type="number" id="variant-price" step="any" min="0" placeholder="0.00">
                 </div>
                 <div class="form-group">
                     <label data-i18n="variantStock">Stock (optionnel)</label>
-                    <input type="number" id="variant-stock" step="0.01" min="0" placeholder="0">
+                    <input type="number" id="variant-stock" step="any" min="0" placeholder="0">
                 </div>
             </div>
             <div class="form-group">
@@ -1953,6 +2221,30 @@ SECTION 11.5: MODAL - VARIANT MANAGEMENT
                 <button type="button" class="btn btn-secondary" id="btn-close-variant-modal" data-i18n="cancelBtn">Annuler</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- ============================================================
+MODAL - PACK CONVERSION (OUVRIR UN PAQUET)
+============================================================ -->
+<div class="modal-overlay" id="pack-conversion-modal">
+    <div class="modal modal-small">
+        <h3 data-i18n="packConversionModalTitle">📦 Ouvrir un paquet</h3>
+        <input type="hidden" id="pc-pack-barcode">
+        <input type="hidden" id="pc-unit-barcode">
+        <input type="hidden" id="pc-units-per-pack">
+
+        <div id="pc-preview" style="background:#f3f6fb;border:1px solid #dbe2ee;border-radius:8px;padding:14px;margin-bottom:16px;font-size:14px;line-height:1.6;"></div>
+
+        <div class="form-group">
+            <label data-i18n="packConversionQuantity">Nombre de paquets</label>
+            <input type="number" id="pc-packs" min="1" step="1" value="1" style="width:120px;">
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn btn-primary" id="btn-confirm-pack-conversion" data-i18n="packConversionConfirm">Confirmer</button>
+            <button type="button" class="btn btn-secondary" id="btn-cancel-pack-conversion" data-i18n="cancelBtn">Annuler</button>
+        </div>
     </div>
 </div>
 
@@ -1990,7 +2282,7 @@ MODAL - CUSTOMER DETAIL
             <h4 data-i18n="partialPayment">💰 Paiement Partiel</h4>
             <div class="partial-payment-row">
                 <label for="partial-payment-amount" data-i18n="amountToPay">Montant à payer (DA):</label>
-                <input type="number" id="partial-payment-amount" placeholder="0.00" step="0.01" min="0">
+                <input type="number" id="partial-payment-amount" placeholder="0.00" step="any" min="0">
             </div>
             <div class="partial-payment-row" style="margin-top:8px;">
                 <span style="font-size:13px;color:#666;" data-i18n="remainingAfterPayment">Dette restante après paiement:</span>
@@ -2083,16 +2375,12 @@ MODAL - USER PIN CHANGE (Admin operation)
 <div class="modal-overlay" id="user-pin-change-modal">
     <div class="modal">
         <h3><span data-i18n="pinChangeTitle">🔑 Changer le PIN de </span><span id="pin-change-user-name"></span></h3>
+        <p style="text-align:center;color:#666;font-size:13px;" data-i18n="forgotPinDesc">Créez un nouveau PIN pour votre compte.</p>
         <form id="user-pin-change-form" autocomplete="off">
             <div class="form-group">
                 <label data-i18n="newPinLabel">Nouveau PIN (4-6 chiffres) *</label>
                 <div class="pin-display" id="admin-change-pin-display">○ ○ ○ ○</div>
                 <div class="pin-pad" id="admin-change-pin-pad" style="margin:0 auto;"></div>
-            </div>
-            <div class="form-group" style="margin-top:8px;">
-                <label data-i18n="confirmPinLabel">Confirmer le PIN *</label>
-                <div class="pin-display" id="admin-change-confirm-display">○ ○ ○ ○</div>
-                <div class="pin-pad" id="admin-change-confirm-pad" style="margin:0 auto;"></div>
             </div>
             <div id="user-pin-change-error" style="color:var(--danger);font-size:13px;margin-bottom:8px;min-height:20px;"></div>
             <div class="modal-actions">
@@ -2120,11 +2408,33 @@ MODAL - ADMIN PIN CONFIRMATION
 </div>
 
 <!-- ============================================================
+MODAL - MASTER RECOVERY CODE (PIN oublié, écran de verrouillage)
+============================================================ -->
+<div class="modal-overlay" id="recovery-code-modal">
+    <div class="modal modal-small">
+        <h3 style="text-align:center;" data-i18n="recoveryCodeTitle">🔑 Code de récupération</h3>
+        <p style="text-align:center;color:#666;font-size:13px;" data-i18n="recoveryCodeSubtitle">Entrez le code de récupération du magasin pour réinitialiser le PIN du profil sélectionné.</p>
+        <form id="recovery-code-form" autocomplete="off" onsubmit="event.preventDefault(); submitRecoveryCode(event)" style="text-align:center;">
+            <div class="form-group">
+                <input type="text" id="recovery-code-input" placeholder="ABCD EFGH JKLM" data-i18n-placeholder="recoveryCodePlaceholder"
+                    style="text-align:center;text-transform:uppercase;letter-spacing:1px;font-size:16px;padding:10px;" autocomplete="off" spellcheck="false">
+            </div>
+            <div id="recovery-code-error" class="pin-error" style="text-align:center;min-height:20px;"></div>
+            <div class="modal-actions" style="justify-content:center;margin-top:16px;">
+                <button type="button" class="btn btn-secondary" onclick="closeRecoveryCodeModal()" data-i18n="cancelBtn">Annuler</button>
+                <button type="submit" class="btn btn-primary" data-i18n="recoveryEnterBtn">Valider le code</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================
 MODAL - CHANGE PIN (First Login)
 ============================================================ -->
 <div class="modal-overlay" id="change-pin-modal">
     <div class="modal">
         <h3 id="change-pin-title" data-i18n="mandatoryPinTitle">🔑 Changement de PIN obligatoire</h3>
+        <p id="change-pin-user-line" style="display:none;text-align:center;color:#666;font-size:13px;margin:-6px 0 8px;"><span data-i18n="pinChangeTitle">🔑 Changer le PIN de </span><span id="change-pin-user-name"></span></p>
         <p id="change-pin-desc" style="color:#666;font-size:13px;" data-i18n="mandatoryPinDesc">Votre PIN par défaut (0000) doit être changé pour des raisons de sécurité.</p>
         <form id="change-pin-form" autocomplete="off" onsubmit="event.preventDefault(); handleChangePinSubmit(event)">
             <div class="form-group">
@@ -2146,6 +2456,135 @@ MODAL - CHANGE PIN (First Login)
 </div>
 
 <!-- ============================================================
+ACTIVATION OVERLAY — License check (shown before everything)
+============================================================ -->
+<div id="activation-overlay" style="display:none;position:fixed;inset:0;
+  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+  align-items:center;justify-content:center;flex-direction:column;padding:20px;z-index:99999;">
+  <div style="background:white;border-radius:16px;padding:36px 32px;
+    max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:48px;margin-bottom:8px;">🔐</div>
+      <h2 style="margin:0;font-size:22px;color:#1a1a2e;">Activation Voyllar</h2>
+      <p style="color:#666;font-size:13px;margin:6px 0 0;">
+        Entrez les informations fournies par votre revendeur.
+      </p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#333;
+          display:block;margin-bottom:4px;">Nom exact du magasin *</label>
+        <input type="text" id="activation-shop-name"
+          placeholder="ex: Boutique Amira"
+          style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;
+          border-radius:8px;font-size:14px;box-sizing:border-box;
+          font-family:inherit;outline:none;transition:border-color .2s;"
+          onfocus="this.style.borderColor='#0f3460'"
+          onblur="this.style.borderColor='#e0e0e0'">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#333;
+          display:block;margin-bottom:4px;">Clé de licence *</label>
+        <input type="text" id="activation-license-key"
+          placeholder="ex: 7F3A9B2C4D1E8F6A"
+          maxlength="20"
+          style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;
+          border-radius:8px;font-size:14px;letter-spacing:1px;
+          text-transform:uppercase;box-sizing:border-box;
+          font-family:inherit;outline:none;transition:border-color .2s;"
+          onfocus="this.style.borderColor='#0f3460'"
+          onblur="this.style.borderColor='#e0e0e0'"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#333;
+          display:block;margin-bottom:4px;">Date d'expiration *</label>
+        <input type="date" id="activation-expiry"
+          style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;
+          border-radius:8px;font-size:14px;box-sizing:border-box;
+          font-family:inherit;outline:none;transition:border-color .2s;"
+          onfocus="this.style.borderColor='#0f3460'"
+          onblur="this.style.borderColor='#e0e0e0'">
+      </div>
+      <div id="activation-error" style="color:#e53935;font-size:13px;
+        min-height:20px;font-weight:500;text-align:center;"></div>
+      <button onclick="submitActivation()"
+        style="background:linear-gradient(135deg,#0f3460,#e94560);
+        color:white;border:none;border-radius:8px;padding:12px;
+        font-size:15px;font-weight:700;cursor:pointer;width:100%;
+        transition:opacity .2s;"
+        onmouseover="this.style.opacity='.9'"
+        onmouseout="this.style.opacity='1'">
+        🔓 Activer Voyllar
+      </button>
+      <p style="text-align:center;font-size:12px;color:#999;margin:0;">
+        Pas encore de licence ? Contactez-nous :<br>
+        <a href="https://wa.me/213676139309" target="_blank"
+          style="color:#0f3460;font-weight:600;">
+          WhatsApp : +213 676 13 93 09
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+EXPIRED OVERLAY — Shown when license is past expiry date
+============================================================ -->
+<div id="expired-overlay" style="display:none;position:fixed;inset:0;
+  background:linear-gradient(135deg,#2d1b00 0%,#4a2800 50%,#6b3a00 100%);
+  align-items:center;justify-content:center;flex-direction:column;padding:20px;z-index:99999;">
+  <div style="background:white;border-radius:16px;padding:36px 32px;
+    max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:48px;margin-bottom:8px;">⏰</div>
+      <h2 style="margin:0;font-size:22px;color:#b71c1c;">Licence expirée</h2>
+      <p style="color:#666;font-size:13px;margin:6px 0 0;">
+        Magasin : <strong id="expired-shop-name"></strong><br>
+        Expirée le : <strong id="expired-since" style="color:#b71c1c;"></strong>
+      </p>
+    </div>
+    <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;
+      padding:12px 16px;margin-bottom:20px;text-align:center;font-size:13px;">
+      Contactez votre revendeur pour obtenir une clé de renouvellement.<br>
+      <a href="https://wa.me/213676139309" target="_blank"
+        style="color:#e65100;font-weight:700;">
+        📱 WhatsApp : +213 676 13 93 09
+      </a>  
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#333;
+          display:block;margin-bottom:4px;">Nouvelle clé de licence *</label>
+        <input type="text" id="renewal-license-key"
+          placeholder="Nouvelle clé fournie par le revendeur"
+          maxlength="20"
+          style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;
+          border-radius:8px;font-size:14px;letter-spacing:1px;
+          text-transform:uppercase;box-sizing:border-box;font-family:inherit;"
+          oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;color:#333;
+          display:block;margin-bottom:4px;">Nouvelle date d'expiration *</label>
+        <input type="date" id="renewal-expiry"
+          style="width:100%;padding:10px 14px;border:2px solid #e0e0e0;
+          border-radius:8px;font-size:14px;box-sizing:border-box;
+          font-family:inherit;">
+      </div>
+      <div id="renewal-error" style="color:#e53935;font-size:13px;
+        min-height:20px;font-weight:500;text-align:center;"></div>
+      <button onclick="submitRenewal()"
+        style="background:linear-gradient(135deg,#e65100,#b71c1c);
+        color:white;border:none;border-radius:8px;padding:12px;
+        font-size:15px;font-weight:700;cursor:pointer;width:100%;">
+        🔄 Renouveler la licence
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
 MODAL - WELCOME / FIRST-RUN SETUP
 ============================================================ -->
 <div class="modal-overlay" id="welcome-modal">
@@ -2155,18 +2594,29 @@ MODAL - WELCOME / FIRST-RUN SETUP
         <form id="welcome-form" autocomplete="off" onsubmit="event.preventDefault(); saveWelcome(event)">
             <div class="form-group">
                 <label for="welcome-shop-name">Nom du magasin *</label>
-                <input type="text" id="welcome-shop-name" placeholder="Ex : Samtex Chabet" required>
+                <input type="text" id="welcome-shop-name" placeholder="Ex : Vollar" required>
             </div>
             <div class="form-group" style="margin-top:8px;">
                 <label for="welcome-shop-phone">Téléphone (optionnel)</label>
-                <input type="tel" id="welcome-shop-phone" placeholder="+213 5XX XX XX XX">
-            </div>
+                <input type="tel" id="welcome-shop-phone" placeholder="+213 5XX XX XX XX">  
+            </div>  
             <div id="welcome-error" style="color:var(--danger);font-size:13px;margin-bottom:8px;min-height:20px;"></div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeWelcome()" style="margin-right:auto;">Plus tard</button>
-                <button type="submit" class="btn btn-primary">🚀 Démarrer</button>
+                <button type="submit" class="btn btn-primary">🚀 Démarrer</button>/
             </div>
         </form>
+        <div id="welcome-recovery-step" style="display:none;text-align:center;">
+            <h4 style="margin-bottom:6px;" data-i18n="welcomeRecoveryTitle">🔐 Code de récupération</h4>
+            <p style="color:#666;font-size:13px;margin-bottom:10px;" data-i18n="welcomeRecoveryDesc">Voici le code de récupération de votre caisse. Conservez-le précieusement (notez-le sur papier) : il permet de réinitialiser n'importe quel PIN si vous êtes bloqué(e).</p>
+            <div style="background:#fff8e1;border:1px solid #f9e6a6;border-radius:10px;padding:14px;margin-bottom:12px;">
+                <code id="welcome-recovery-code" style="font-size:20px;letter-spacing:2px;font-weight:700;color:#8a6d1a;user-select:all;"></code>
+            </div>
+            <div class="modal-actions" style="justify-content:center;">
+                <button type="button" class="btn btn-primary" onclick="copyWelcomeRecoveryCode()" data-i18n="recoveryCopyBtn">📋 Copier le code</button>
+                <button type="button" class="btn btn-secondary" onclick="closeWelcomeRecoveryStep()" data-i18n="welcomeRecoveryDone">✅ J'ai noté le code</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -2203,6 +2653,7 @@ MODAL - AUDIT LOG VIEWER
                 <tbody id="audit-log-body">
                     <tr><td colspan="4" style="text-align:center;color:#999;padding:30px;" data-i18n="auditLoading">Chargement...</td></tr>
                 </tbody>
+
             </table>
         </div>
         <div class="modal-actions" style="margin-top:12px;">
@@ -2224,9 +2675,12 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/language.js"></script>
     <script src="js/dom.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/confirm-modal.js"></script>
     <script src="js/audio.js"></script>
+    <script src="js/focus-recovery.js"></script>
     <script src="js/focus.js"></script>
     <script src="js/scanner-state.js"></script>
+    <script src="js/barcode-aliases.js"></script>
     <script src="js/scanner-search.js"></script>
     <script src="js/scanner-barcode.js"></script>
     <script src="js/scanner-suggestions.js"></script>
@@ -2234,23 +2688,28 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/scanner-main.js"></script>
     <script src="js/database.js"></script>
     <script src="js/backup.js"></script>
+    <script src="js/checkout-persist.js"></script>
     <script src="js/cart-state.js"></script>
     <script src="js/cart-add.js"></script>
     <script src="js/cart-meter.js"></script>
     <script src="js/cart-ops.js"></script>
     <script src="js/cart-render.js"></script>
     <script src="js/cart-quick.js"></script>
+    <script src="js/fast-clients.js"></script>
     <script src="js/cart-router.js"></script>
+    <script src="js/cart-name-style.js"></script>
     <script src="js/promotions.js"></script>
     <script src="js/customer-ask.js"></script>
     <script src="js/transaction.js"></script>
     <script src="js/payment.js"></script>
     <script src="js/product-grid.js"></script>
+    <script src="js/quick-boxes.js"></script>
     <script src="js/inventory-list.js"></script>
     <script src="js/inventory-categories.js"></script>
     <script src="js/inventory-form.js"></script>
     <script src="js/inventory-delete.js"></script>
     <script src="js/inventory-edit.js"></script>
+    <script src="js/pack-conversion.js"></script>
     <script src="js/inventory-exports.js"></script>
     <script src="js/customers-list.js"></script>
     <script src="js/customers-select.js"></script>
@@ -2262,6 +2721,7 @@ MODAL - AUDIT LOG VIEWER
     <!-- Analytics - Core + UI + Charts -->
     <script src="js/analytics-core.js"></script>
     <script src="js/analytics-ui.js"></script>
+    <script src="js/day-export.js"></script>
     <script src="js/analytics-charts.js"></script>
     <script src="js/themes-data.js"></script>
     <script src="js/themes.js"></script>
@@ -2276,13 +2736,19 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/print.js"></script>
     <script src="js/zreport.js"></script>
     <script src="js/suppliers.js"></script>
+    <script src="js/supplier-bills-hub.js"></script>
+    <script src="js/expenses.js"></script>
     <script src="js/app-clock.js"></script>
     <script src="js/app-update.js"></script>
+    <script src="js/app-update-boot.js"></script>
     <script src="js/app-setup.js"></script>
     <script src="js/app-welcome.js"></script>
     <script src="js/app-init.js"></script>
+    <script src="js/license-data.js"></script>
+    <script src="js/license.js"></script>
     <script src="js/app-bootstrap.js"></script>
     <script src="js/app-backup.js"></script>
+<script src="js/restore-safety.js"></script>
 
 </body>
 </html>

@@ -1,5 +1,5 @@
 // ============================================================
-// VERIFY — SamtexChabet POS sanity checker
+// VERIFY — Vollar POS sanity checker
 // Usage: node tools/verify.js
 //
 // Checks:
@@ -24,7 +24,7 @@ const JS_DIR = path.join(DIR, 'js');
 const HTML = path.join(DIR, 'index.html');
 
 // Files present in js/ but intentionally NOT loaded by index.html
-const NOT_LOADED_OK = new Set(['sqlite-main.js', 'qz-tray.js']);
+const NOT_LOADED_OK = new Set(['qz-tray.js']);
 
 let failures = 0;
 function fail(msg) { failures++; console.log(`FAIL ${msg}`); }

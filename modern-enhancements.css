@@ -1,560 +1,130 @@
-/*
- * Modern CSS Enhancements for SamtexChabetPOS
- * This file contains cutting-edge CSS features to enhance your application
- * Include this file after your main style.css
- */
-
-/* ============================================================
-   SECTION 1: CSS CONTAINER QUERIES
-   Allows components to respond to their container size, not just viewport
-   ============================================================ */
-@container (max-width: 400px) {
-  .container-query-card {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .container-query-card .card-title {
-    font-size: 1rem;
-  }
-}
-
-/* ============================================================
-   SECTION 2: CSS NESTING (Native CSS)
-   Modern alternative to preprocessors like SASS
-   ============================================================ */
-.analytics-card {
-  background: var(--theme-card);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  transition: var(--transition);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-hover);
-  }
-
-  .card-icon {
-    font-size: 2rem;
-    color: var(--theme-primary);
-    margin-bottom: 0.5rem;
-  }
-
-  .card-value {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: var(--theme-text);
-  }
-
-  .card-label {
-    font-size: 0.9rem;
-    color: rgba(var(--theme-text-rgb), 0.7);
-  }
-}
-
-/* ============================================================
-   SECTION 3: ENHANCED CSS GRID
-   Modern grid features for complex layouts
-   ============================================================ */
-.modern-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  align-items: start;
-}
-
-.grid-subgrid {
-  display: grid;
-  grid-template-rows: subgrid;
-  grid-row: span 3;
-}
-
-/* ============================================================
-   SECTION 4: MODERN SCROLLBAR STYLING
-   Consistent scrollbar appearance across browsers
-   ============================================================ */
-:root {
-  --scrollbar-width: 10px;
-}
-
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-*::-webkit-scrollbar {
-  width: var(--scrollbar-width);
-  height: var(--scrollbar-width);
-}
-
-*::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--radius);
-  border: 2px solid var(--scrollbar-track);
-}
-
-*::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  border-radius: var(--radius);
-}
-
-/* ============================================================
-   SECTION 5: ASPECT RATIO
-   Maintain consistent aspect ratios for elements
-   ============================================================ */
-.chart-container {
-  aspect-ratio: 16/9;
-  width: 100%;
-  background: var(--theme-card);
-  border-radius: var(--radius);
-  padding: 1rem;
-}
-
-.video-container {
-  aspect-ratio: 16/9;
-  position: relative;
-}
-
-/* ============================================================
-   SECTION 6: FLUID TYPOGRAPHY WITH CLAMP()
-   Responsive font sizes that scale smoothly
-   ============================================================ */
-.fluid-text {
-  font-size: clamp(1rem, 2vw, 1.5rem);
-}
-
-.card-title {
-  font-size: clamp(1.2rem, 3vw, 1.8rem);
-  font-weight: 600;
-  color: var(--theme-text);
-}
-
-/* ============================================================
-   SECTION 7: MODERN CSS SELECTORS
-   Advanced selectors for more powerful styling
-   ============================================================ */
-/* Style cards that contain a featured item */
-.card:has(.featured) {
-  border: 2px solid var(--accent);
-  transform: scale(1.02);
-}
-
-/* Style buttons based on their state */
-button:is(.primary, .accent) {
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius);
-  font-weight: 500;
-  transition: var(--transition);
-}
-
-button.primary {
-  background: var(--theme-primary);
-  color: white;
-}
-
-button.accent {
-  background: var(--accent);
-  color: white;
-}
-
-/* ============================================================
-   SECTION 8: MODERN TRANSITIONS AND ANIMATIONS
-   Smooth, performant animations
-   ============================================================ */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.hover-scale {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.03);
-  box-shadow: var(--shadow-hover);
-}
-
-/* ============================================================
-   SECTION 9: MODERN SPACING WITH CSS GAP
-   Consistent spacing between elements
-   ============================================================ */
-.gap-sm { gap: 0.5rem; }
+@container (max-width: 400px) { .container-query-card { flex-direction: column; gap: 0.5rem; } .container-query-card .card-title { font-size: 1rem; }
+} .analytics-card { background: var(--theme-card); border-radius: var(--radius); padding: 1.5rem; transition: var(--transition); &:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); } .card-icon { font-size: 2rem; color: var(--theme-primary); margin-bottom: 0.5rem; } .card-value { font-size: 1.8rem; font-weight: 600; color: var(--theme-text); } .card-label { font-size: 0.9rem; color: rgba(var(--theme-text-rgb), 0.7); }
+} .modern-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; align-items: start;
+} .grid-subgrid { display: grid; grid-template-rows: subgrid; grid-row: span 3;
+} :root { --scrollbar-width: 10px;
+} * { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+} *::-webkit-scrollbar { width: var(--scrollbar-width); height: var(--scrollbar-width);
+} *::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--radius); border: 2px solid var(--scrollbar-track);
+} *::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: var(--radius);
+} .chart-container { aspect-ratio: 16/9; width: 100%; background: var(--theme-card); border-radius: var(--radius); padding: 1rem;
+} .video-container { aspect-ratio: 16/9; position: relative;
+} .fluid-text { font-size: clamp(1rem, 2vw, 1.5rem);
+} .card-title { font-size: clamp(1.2rem, 3vw, 1.8rem); font-weight: 600; color: var(--theme-text);
+} .card:has(.featured) { border: 2px solid var(--accent); transform: scale(1.02);
+} button:is(.primary, .accent) { padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 500; transition: var(--transition);
+} button.primary { background: var(--theme-primary); color: white;
+} button.accent { background: var(--accent); color: white;
+} @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); }
+} .fade-in { animation: fadeIn 0.5s ease-out forwards;
+} .hover-scale { transition: transform 0.3s ease, box-shadow 0.3s ease;
+} .hover-scale:hover { transform: scale(1.03); box-shadow: var(--shadow-hover);
+} .gap-sm { gap: 0.5rem; }
 .gap-md { gap: 1rem; }
 .gap-lg { gap: 1.5rem; }
-.gap-xl { gap: 2rem; }
-
-.flex-gap {
-  display: flex;
-  gap: var(--gap, 1rem);
-}
-
-/* ============================================================
-   SECTION 10: MODERN COLOR FUNCTIONS
-   Advanced color manipulation
-   ============================================================ */
-:root {
-  --primary-rgb: 108, 99, 255;
-  --text-rgb: 26, 26, 46;
-}
-
-.text-primary-light {
-  color: rgba(var(--primary-rgb), 0.8);
-}
-
-.text-primary-lighter {
-  color: rgba(var(--primary-rgb), 0.6);
-}
-
-.bg-primary-transparent {
-  background-color: rgba(var(--primary-rgb), 0.1);
-}
-
-/* ============================================================
-   SECTION 11: MODERN RESPONSIVE UTILITIES
-   Utility classes for responsive design
-   ============================================================ */
-@media (max-width: 768px) {
-  .hide-mobile {
-    display: none !important;
-  }
-
-  .flex-col-mobile {
-    flex-direction: column !important;
-  }
-}
-
-@media (min-width: 769px) {
-  .hide-desktop {
-    display: none !important;
-  }
-}
-
-/* ============================================================
-   SECTION 12: MODERN FOCUS STYLES
-   Accessible focus indicators
-   ============================================================ */
-:focus-visible {
-  outline: 2px solid var(--theme-primary);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-
-/* Remove outline for mouse users but keep for keyboard users */
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
-/* ============================================================
-   SECTION 13: BUTTON CONTEXT MENU (clic droit)
-   Menu de personnalisation des boutons
-   ============================================================ */
-#btn-context-menu {
-  position: fixed;
-  z-index: 100000;
-  min-width: 224px;
-  max-width: 300px;
-  background: #fff;
-  border: 1px solid #dcdcde;
-  border-radius: 12px;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.18);
-  padding: 6px;
-  font-family: var(--font-family);
-  font-size: 13px;
-  color: #333;
-  user-select: none;
-  -webkit-user-select: none;
+.gap-xl { gap: 2rem; } .flex-gap { display: flex; gap: var(--gap, 1rem);
+} :root { --primary-rgb: 108, 99, 255; --text-rgb: 26, 26, 46;
+} .text-primary-light { color: rgba(var(--primary-rgb), 0.8);
+} .text-primary-lighter { color: rgba(var(--primary-rgb), 0.6);
+} .bg-primary-transparent { background-color: rgba(var(--primary-rgb), 0.1);
+} @media (max-width: 768px) { .hide-mobile { display: none !important; } .flex-col-mobile { flex-direction: column !important; }
+} @media (min-width: 769px) { .hide-desktop { display: none !important; }
+} :focus-visible { outline: 2px solid var(--theme-primary); outline-offset: 2px; border-radius: var(--radius-sm);
+} :focus:not(:focus-visible) { outline: none;
+} #btn-context-menu { position: fixed; z-index: 100000; min-width: 224px; max-width: 300px; background: #fff; border: 1px solid #dcdcde; border-radius: 12px; box-shadow: 0 10px 34px rgba(0, 0, 0, 0.18); padding: 6px; font-family: var(--font-family); font-size: 13px; color: #333; user-select: none; -webkit-user-select: none;
 }
 #btn-context-menu * { box-sizing: border-box; }
-.btn-context-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 8px 8px;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 4px;
-  font-weight: 700;
-  font-size: 13px;
+.btn-context-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 8px; border-bottom: 1px solid #eee; margin-bottom: 4px; font-weight: 700; font-size: 13px;
 }
-.btn-context-header strong {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.btn-context-header strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.btn-context-close {
-  cursor: pointer;
-  color: #999;
-  font-size: 14px;
-  padding: 0 2px;
-  line-height: 1;
-  background: none;
-  border: none;
+.btn-context-close { cursor: pointer; color: #999; font-size: 14px; padding: 0 2px; line-height: 1; background: none; border: none;
 }
 .btn-context-close:hover { color: #222; }
-.btn-context-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 7px 8px;
-  border: none;
-  background: none;
-  border-radius: 7px;
-  font-size: 13px;
-  color: #333;
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
+.btn-context-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border: none; background: none; border-radius: 7px; font-size: 13px; color: #333; cursor: pointer; text-align: left; font-family: inherit;
 }
 .btn-context-item:hover { background: #eef3ff; }
-.btn-context-item .ctx-kbd {
-  margin-left: auto;
-  font-size: 11px;
-  color: #667;
-  background: #f0f0f0;
-  border-radius: 4px;
-  padding: 1px 6px;
-  letter-spacing: 0.5px;
+.btn-context-item .ctx-kbd { margin-left: auto; font-size: 11px; color: #667; background: #f0f0f0; border-radius: 4px; padding: 1px 6px; letter-spacing: 0.5px;
 }
-.btn-context-color {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+.btn-context-color { display: flex; align-items: center; gap: 8px; padding: 6px 8px;
 }
-.btn-context-color-label {
-  font-size: 13px;
-  color: #333;
-  white-space: nowrap;
+.btn-context-color-label { font-size: 13px; color: #333; white-space: nowrap;
 }
-.btn-context-swatches {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
+.btn-context-swatches { display: flex; gap: 5px; flex-wrap: wrap;
 }
-.btn-context-swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 1px #ccc;
-  cursor: pointer;
-  padding: 0;
+.btn-context-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #ccc; cursor: pointer; padding: 0;
 }
 .btn-context-swatch.active { box-shadow: 0 0 0 2px #333; }
-.btn-context-divider {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: 5px 0;
+.btn-context-divider { border: none; border-top: 1px solid #eee; margin: 5px 0;
 }
-.btn-context-hidden {
-  border-top: 1px solid #eee;
-  margin-top: 5px;
-  padding-top: 4px;
+.btn-context-hidden { border-top: 1px solid #eee; margin-top: 5px; padding-top: 4px;
 }
-.btn-context-hidden-title {
-  font-size: 12px;
-  color: #888;
-  padding: 4px 8px 6px;
-  font-weight: 600;
+.btn-context-hidden-title { font-size: 12px; color: #888; padding: 4px 8px 6px; font-weight: 600;
 }
-.btn-context-hidden-item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 6px 8px;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #333;
-  cursor: pointer;
-  font-family: inherit;
+.btn-context-hidden-item { display: block; width: 100%; text-align: left; padding: 6px 8px; border: none; background: none; border-radius: 6px; font-size: 13px; color: #333; cursor: pointer; font-family: inherit;
 }
-.btn-context-hidden-item:hover { background: #eef3ff; }
-
-/* Button customization styles applied by the right-click menu */
-.btn-custom-large {
-  font-size: 1.18em !important;
-  padding: 0.45em 1.15em !important;
+.btn-context-hidden-item:hover { background: #eef3ff; } .btn-custom-large { font-size: 1.18em !important; padding: 0.45em 1.15em !important;
 }
-.btn-custom-color {
-  background-color: var(--btn-custom-bg, #2ecc71) !important;
-  background-image: none !important;
-  border-color: var(--btn-custom-bg, #2ecc71) !important;
-  color: #fff !important;
+.btn-custom-color { background-color: var(--btn-custom-bg, #2ecc71) !important; background-image: none !important; border-color: var(--btn-custom-bg, #2ecc71) !important; color: #fff !important;
 }
 .btn-custom-color:hover,
-.btn-custom-color:focus {
-  background-color: var(--btn-custom-bg-hover, #27ae60) !important;
-  border-color: var(--btn-custom-bg-hover, #27ae60) !important;
-}
-
-/* Dark mode support for the context menu */
-body.dark-mode #btn-context-menu {
-  background: #26272b;
-  border-color: #3a3b40;
-  color: #eee;
+.btn-custom-color:focus { background-color: var(--btn-custom-bg-hover, #27ae60) !important; border-color: var(--btn-custom-bg-hover, #27ae60) !important;
+} body.dark-mode #btn-context-menu { background: #26272b; border-color: #3a3b40; color: #eee;
 }
 body.dark-mode .btn-context-header { border-bottom-color: #38393e; }
 body.dark-mode .btn-context-item,
 body.dark-mode .btn-context-hidden-item { color: #eee; }
 body.dark-mode .btn-context-item:hover,
 body.dark-mode .btn-context-hidden-item:hover { background: #33343a; }
-body.dark-mode .btn-context-item .ctx-kbd {
-  background: #3a3b40;
-  color: #cfcfd4;
+body.dark-mode .btn-context-item .ctx-kbd { background: #3a3b40; color: #cfcfd4;
 }
 body.dark-mode .btn-context-color-label { color: #eee; }
 body.dark-mode .btn-context-hidden-title { color: #aaa; }
 body.dark-mode .btn-context-hidden,
-body.dark-mode .btn-context-divider { border-top-color: #38393e; }
-
-/* Shortcut recording banner */
-.btn-context-recording {
-  position: fixed;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100000;
-  background: #2c6cb8;
-  color: #fff;
-  border-radius: 10px;
-  padding: 12px 20px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
-  animation: btnContextRecordingPop 0.25s ease;
+body.dark-mode .btn-context-divider { border-top-color: #38393e; } .btn-context-recording { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 100000; background: #2c6cb8; color: #fff; border-radius: 10px; padding: 12px 20px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); animation: btnContextRecordingPop 0.25s ease;
 }
-@keyframes btnContextRecordingPop {
-  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+@keyframes btnContextRecordingPop { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
-.btn-context-recording-inner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  font-weight: 600;
+.btn-context-recording-inner { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600;
 }
-.btn-context-recording-ico {
-  width: 26px;
-  height: 26px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+.btn-context-recording-ico { width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(255, 255, 255, 0.2);
 }
-.btn-context-recording-esc {
-  font-size: 12px;
-  font-weight: 400;
-  opacity: 0.85;
-  padding-left: 10px;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
+.btn-context-recording-esc { font-size: 12px; font-weight: 400; opacity: 0.85; padding-left: 10px; border-left: 1px solid rgba(255, 255, 255, 0.3);
 }
-.btn-context-recording-target {
-  outline: 3px solid #2c6cb8 !important;
-  outline-offset: 2px;
+.btn-context-recording-target { outline: 3px solid #2c6cb8 !important; outline-offset: 2px;
+} #btn-custom-list { display: flex; flex-direction: column; gap: 8px;
 }
-
-/* ============================================================
-   SECTION 14: BUTTON CUSTOMIZATION — settings panel rows
-   ============================================================ */
-#btn-custom-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.btn-custom-none { font-size: 13px; color: #888; padding: 6px 2px;
 }
-.btn-custom-none {
-  font-size: 13px;
-  color: #888;
-  padding: 6px 2px;
+.btn-custom-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #ececec; border-radius: 8px; background: #fafafa; flex-wrap: wrap;
 }
-.btn-custom-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border: 1px solid #ececec;
-  border-radius: 8px;
-  background: #fafafa;
-  flex-wrap: wrap;
+body.dark-mode .btn-custom-row { border-color: #38393e; background: #2b2c31;
 }
-body.dark-mode .btn-custom-row {
-  border-color: #38393e;
-  background: #2b2c31;
-}
-.btn-custom-row-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-  flex: 1 1 120px;
-  min-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.btn-custom-row-label { font-size: 13px; font-weight: 600; color: #333; flex: 1 1 120px; min-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 body.dark-mode .btn-custom-row-label { color: #eee; }
-.btn-custom-row-badges {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
+.btn-custom-row-badges { display: flex; gap: 5px; flex-wrap: wrap;
 }
-.btn-custom-row-badge {
-  font-size: 11px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background: #ececec;
-  color: #555;
-  white-space: nowrap;
+.btn-custom-row-badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #ececec; color: #555; white-space: nowrap;
 }
 body.dark-mode .btn-custom-row-badge { background: #3a3b40; color: #cfcfd4; }
 .btn-custom-row-badge.badge-hidden { background: #fdecea; color: #c0392b; }
 .btn-custom-row-badge.badge-shortcut { background: #eaf2fd; color: #2c6cb8; }
 .btn-custom-row-badge.badge-large { background: #eef7ec; color: #27ae60; }
-.btn-custom-row-badge.badge-color {
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+.btn-custom-row-badge.badge-color { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
-.btn-custom-row-actions {
-  display: flex;
-  gap: 6px;
-  margin-left: auto;
-}
-
-/* ============================================================
-   INTERFACE APPEARANCE — classes pilotées par Paramètres > Apparence
-   (Icônes, Mode compact, Animations, Contraste élevé,
-    Taille de police, Densité)
-   ============================================================ */
-
-/* Icônes : masque les icônes émoji quand le réglage est désactivé */
-body:not(.show-icons) .nav-icon,
+.btn-custom-row-actions { display: flex; gap: 6px; margin-left: auto;
+} body:not(.show-icons) .nav-icon,
 body:not(.show-icons) .settings-nav-icon,
 body:not(.show-icons) .panel-badge,
 body:not(.show-icons) .settings-card-badge,
-body:not(.show-icons) .settings-subsection-icon {
-  display: none;
+body:not(.show-icons) .settings-subsection-icon { display: none;
 }
-body:not(.show-icons) .nav-tab {
-  justify-content: center;
-  gap: 0;
-}
-
-/* Animations : réduit toutes les transitions/animations */
-body.reduce-animations *,
+body:not(.show-icons) .nav-tab { justify-content: center; gap: 0;
+} body.reduce-animations *,
 body.reduce-animations *::before,
-body.reduce-animations *::after {
-  animation: none !important;
-  transition: none !important;
-}
-
-/* Mode compact : resserre les espacements */
-body.compact-mode .btn { padding: 6px 10px; }
+body.reduce-animations *::after { animation: none !important; transition: none !important;
+} body.compact-mode .btn { padding: 6px 10px; }
 body.compact-mode .nav-tab { padding: 5px 10px; }
 body.compact-mode .app-header { padding: 4px 8px; }
 body.compact-mode .settings-card { padding: 10px 12px; }
@@ -562,30 +132,18 @@ body.compact-mode .settings-card-body { padding: 8px; }
 body.compact-mode .form-group { margin-bottom: 8px; }
 body.compact-mode table th,
 body.compact-mode table td { padding: 5px 7px; }
-body.compact-mode .card-body { padding: 10px; }
-
-/* Contraste élevé */
-body.high-contrast {
-  color: #000 !important;
-  --theme-text: #000 !important;
-  --text-muted: #333 !important;
-  --theme-text-muted: #333 !important;
+body.compact-mode .card-body { padding: 10px; } body.high-contrast { color: #000 !important; --theme-text: #000 !important; --text-muted: #333 !important; --theme-text-muted: #333 !important;
 }
 body.high-contrast .card,
 body.high-contrast .settings-card,
 body.high-contrast .modal,
 body.high-contrast .panel,
-body.high-contrast .settings-panel {
-  border: 1.5px solid rgba(0, 0, 0, 0.6) !important;
+body.high-contrast .settings-panel { border: 1.5px solid rgba(0, 0, 0, 0.6) !important;
 }
 body.high-contrast input,
 body.high-contrast select,
-body.high-contrast textarea {
-  border-color: #000 !important;
-}
-
-/* Taille de police */
-body.font-small { font-size: 12px; }
+body.high-contrast textarea { border-color: #000 !important;
+} body.font-small { font-size: 12px; }
 body.font-medium { font-size: 14px; }
 body.font-large { font-size: 16px; }
 body.font-small .btn,
@@ -637,10 +195,7 @@ body.font-small select,
 body.font-small textarea { font-size: 12px; }
 body.font-large input,
 body.font-large select,
-body.font-large textarea { font-size: 15px; }
-
-/* Densité : 'compact' est le défaut (classe absente) */
-body.density-comfortable .btn { padding: 10px 16px; }
+body.font-large textarea { font-size: 15px; } body.density-comfortable .btn { padding: 10px 16px; }
 body.density-spacious .btn { padding: 12px 20px; }
 body.density-comfortable .nav-tab { padding: 10px 18px; }
 body.density-spacious .nav-tab { padding: 12px 22px; }
@@ -652,23 +207,7 @@ body.density-comfortable table th,
 body.density-comfortable table td { padding: 10px 12px; }
 body.density-spacious table th,
 body.density-spacious table td { padding: 13px 16px; }
-body.density-spacious .form-group { margin-bottom: 20px; }
-
-/* ============================================================
-   MODE SOMBRE — réglage "Mode sombre" (Paramètres > Apparence)
-   ============================================================ */
-body.dark-mode {
-  --theme-text: #e8e8e8 !important;
-  --theme-border: #3a3b40 !important;
-  --theme-card: #2b2c31 !important;
-  --theme-bg: #1e1f23 !important;
-  --bg: #1e1f23 !important;
-  --card-bg: #2b2c31 !important;
-  --text-muted: #9aa0aa !important;
-  --scrollbar-track: #26272b !important;
-  --scrollbar-thumb: #40414a !important;
-  background: #1e1f23 !important;
-  color: #e8e8e8 !important;
+body.density-spacious .form-group { margin-bottom: 20px; } body.dark-mode { --theme-text: #e8e8e8 !important; --theme-border: #3a3b40 !important; --theme-card: #2b2c31 !important; --theme-bg: #1e1f23 !important; --bg: #1e1f23 !important; --card-bg: #2b2c31 !important; --text-muted: #9aa0aa !important; --scrollbar-track: #26272b !important; --scrollbar-thumb: #40414a !important; background: #1e1f23 !important; color: #e8e8e8 !important;
 }
 body.dark-mode .app-header { background: #222328 !important; }
 body.dark-mode .card,
@@ -686,10 +225,7 @@ body.dark-mode .customer-item,
 body.dark-mode .supplier-item,
 body.dark-mode .sale-detail,
 body.dark-mode .settings-panel,
-body.dark-mode .sell-detail {
-  background: #2b2c31 !important;
-  border-color: #3a3b40 !important;
-  color: #e8e8e8 !important;
+body.dark-mode .sell-detail { background: #2b2c31 !important; border-color: #3a3b40 !important; color: #e8e8e8 !important;
 }
 body.dark-mode .card-title,
 body.dark-mode .card-header,
@@ -701,36 +237,24 @@ body.dark-mode .table-header,
 body.dark-mode .table-title,
 body.dark-mode .summary-block-title,
 body.dark-mode .history-sale-header,
-body.dark-mode .analytics-section-title {
-  color: #f0f0f0 !important;
-  border-color: #3a3b40;
+body.dark-mode .analytics-section-title { color: #f0f0f0 !important; border-color: #3a3b40;
 }
 body.dark-mode table,
 body.dark-mode .sales-table,
 body.dark-mode th,
-body.dark-mode td {
-  border-color: #3a3b40 !important;
-  color: #ddd !important;
+body.dark-mode td { border-color: #3a3b40 !important; color: #ddd !important;
 }
 body.dark-mode input,
 body.dark-mode select,
-body.dark-mode textarea {
-  background: #33343a !important;
-  border-color: #4a4b52 !important;
-  color: #eee !important;
+body.dark-mode textarea { background: #33343a !important; border-color: #4a4b52 !important; color: #eee !important;
 }
 body.dark-mode .search-box,
 body.dark-mode .suggestion-item,
 body.dark-mode .file-input { background: #33343a !important; border-color: #4a4b52 !important; }
 body.dark-mode .suggestion-item:hover { background: #3f4250 !important; }
-body.dark-mode .btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-accent):not(.btn-info) {
-  background: #3a3b40;
-  border-color: #4a4b52;
-  color: #eee;
+body.dark-mode .btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-accent):not(.btn-info) { background: #3a3b40; border-color: #4a4b52; color: #eee;
 }
-body.dark-mode .btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-accent):not(.btn-info):hover {
-  background: #45464d;
-  color: #fff;
+body.dark-mode .btn:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-warning):not(.btn-accent):not(.btn-info):hover { background: #45464d; color: #fff;
 }
 body.dark-mode .btn-primary,
 body.dark-mode .btn-success,

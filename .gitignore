@@ -2,3 +2,28 @@
 .continue/
 *.json.bak
 backup_*.json
+
+# Build outputs
+/dist/
+/distout/
+/dist_new/
+/release/
+/electron/dist/
+/electron/dist-build/
+node_modules/
+package-lock.json
+
+# Debug / leftover artifacts (do not publish)
+/_temp_*.js
+/_debug_harness/
+/_out217/
+/_release_preview/
+/_release_test/
+/release_new/
+/release_v2.0.17/
+/extracted_pos201/
+/_build_staging_*/
+seed_samtex_*.json
+finaliser-cleanup.bat
+tools/samtex-cleanup.bat
+*.code-workspace
