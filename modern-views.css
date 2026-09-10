@@ -748,41 +748,43 @@ body.structure-alternative.structure-collapsed #current-user-name { display: non
 .supplier-hub-toolbar .expense-btn--full { padding: 10px 14px; font-size: 14px; }
 .hub-add-item { padding: 3px 8px !important; font-size: 11px !important; white-space: nowrap; }
 .hub-body { padding-top: 8px; }
-.hub-bill { border: 1px solid #f0e0e6; border-radius: 10px; margin-bottom: 8px; background: #fff; overflow: hidden; }
+.hub-bill { border: 1px solid #e2e2e2; border-radius: 10px; margin-bottom: 8px; background: #fff; overflow: hidden; }
 #supplier-hub-bills .hub-bill[class*="hub-bill-c"] { border-left-width: 5px; }
-#supplier-hub-bills .hub-bill-c0 { background: #dbeafe; border-left-color: #2563eb; }
-#supplier-hub-bills .hub-bill-c1 { background: #fecaca; border-left-color: #dc2626; }
-#supplier-hub-bills .hub-bill-c2 { background: #bbf7d0; border-left-color: #16a34a; }
-#supplier-hub-bills .hub-bill-c3 { background: #fed7aa; border-left-color: #ea580c; }
-#supplier-hub-bills .hub-bill-c4 { background: #f5d0fe; border-left-color: #9333ea; }
-#supplier-hub-bills .hub-bill-c5 { background: #a5f3fc; border-left-color: #0891b2; }
-#supplier-hub-bills .hub-bill-c6 { background: #a7f3d0; border-left-color: #059669; }
-#supplier-hub-bills .hub-bill-c7 { background: #fecdd3; border-left-color: #e11d48; }
-#supplier-hub-bills .hub-bill-c8 { background: #fef08a; border-left-color: #ca8a04; }
-#supplier-hub-bills .hub-bill-c9 { background: #e9d5ff; border-left-color: #7c3aed; }
-#supplier-hub-bills .hub-bill--open { box-shadow: 0 5px 14px rgba(107, 92, 224, 0.22); filter: brightness(1.03); border-left-width: 6px; }
+#supplier-hub-bills .hub-bill-c0 { background: #fafafa; border-left-color: #d1d1d1; }
+#supplier-hub-bills .hub-bill-c1 { background: #f3f3f3; border-left-color: #c4c4c4; }
+#supplier-hub-bills .hub-bill-c2 { background: #ececec; border-left-color: #b8b8b8; }
+#supplier-hub-bills .hub-bill-c3 { background: #e5e5e5; border-left-color: #ababab; }
+#supplier-hub-bills .hub-bill-c4 { background: #dedede; border-left-color: #9e9e9e; }
+#supplier-hub-bills .hub-bill-c5 { background: #d7d7d7; border-left-color: #919191; }
+#supplier-hub-bills .hub-bill-c6 { background: #d0d0d0; border-left-color: #848484; }
+#supplier-hub-bills .hub-bill-c7 { background: #c9c9c9; border-left-color: #777777; }
+#supplier-hub-bills .hub-bill-c8 { background: #c2c2c2; border-left-color: #6a6a6a; }
+#supplier-hub-bills .hub-bill-c9 { background: #bbbbbb; border-left-color: #5d5d5d; }
+#supplier-hub-bills .hub-bill--open { box-shadow: 0 5px 14px rgba(107, 107, 107, 0.22); filter: brightness(1.03); border-left-width: 6px; }
 #supplier-hub-bills .hub-bill-head:hover { background: rgba(255, 255, 255, 0.35); }
 .hub-bill-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 12px; cursor: pointer; flex-wrap: wrap; }
-.hub-bill-head:hover { background: #faf7ff; }
-.hub-bill-chevron { display: inline-flex; align-items: center; font-size: 18px; color: #6b5ce0; transition: transform 0.15s ease; }
+.hub-bill-head:hover { background: #f7f7f7; }
+.hub-bill-chevron { display: inline-flex; align-items: center; font-size: 18px; color: #6b7280; transition: transform 0.15s ease; }
 .hub-bill--open .hub-bill-chevron { transform: rotate(90deg); }
 .hub-bill-labels { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: #333; min-width: 0; }
 .hub-bill-date { font-weight: 700; }
-.hub-bill-ref { color: #2e7d32; font-weight: 600; }
-.hub-bill-count { color: #6b5ce0; font-size: 12px; font-weight: 600; background: #f0edfb; padding: 2px 8px; border-radius: 10px; }
-.hub-bill-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.hub-bill-ref { color: #4b5563; font-weight: 600; }
+.hub-bill-count { color: #4b5563; font-size: 12px; font-weight: 600; background: #ececec; padding: 2px 8px; border-radius: 10px; }
 .hub-bill-total { font-weight: 700; color: var(--primary); font-size: 13px; }
-.hub-bill-body { padding: 8px 12px 12px 12px; border-top: 1px dashed #efe8fa; }
+.hub-bill-body { padding: 8px 12px 12px 12px; border-top: 1px dashed #e3e3e3; }
 .hub-bill-body--closed { display: none; }
 .hub-bill-body--open { display: block; }
 .hub-bill-search-row { margin-bottom: 8px; }
-.hub-bill-search { width: 100%; padding: 6px 10px; border: 1px solid #e6e0f5; border-radius: 8px; font-size: 13px; font-family: var(--font-family); background: #faf9ff; }
-.hub-bill-search:focus { border-color: #6b5ce0; outline: none; }
+.hub-bill-search { width: 100%; padding: 6px 10px; border: 1px solid #e3e3e3; border-radius: 8px; font-size: 13px; font-family: var(--font-family); background: #fafafa; }
+.hub-bill-search:focus { border-color: #888888; outline: none; }
 .hub-date-edit, .hub-new-bill-fields { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.hub-date-edit input[type="date"], .hub-new-bill-fields input[type="date"], .hub-new-bill-fields input[type="text"] { padding: 5px 8px; border: 1px solid #d8cdf5; border-radius: 8px; font-size: 13px; font-family: var(--font-family); }
+.hub-date-edit input[type="date"], .hub-new-bill-fields input[type="date"], .hub-new-bill-fields input[type="text"] { padding: 5px 8px; border: 1px solid #d5d5d5; border-radius: 8px; font-size: 13px; font-family: var(--font-family); }
 .hub-new-bill-fields input[type="text"] { min-width: 180px; }
 .hub-bill-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
 .hub-bill-actions .expense-btn--primary { flex: 1; }
+/* --- Hub bill action toolbar (rangée de boutons sous l'info facture) --- */
+.hub-bill-toolbar { display: flex; align-items: center; gap: 8px; padding: 0 12px 10px 12px; flex-wrap: wrap; }
+.hub-bill-toolbar .hub-add-item { margin-left: auto; }
 .hub-danger { color: var(--danger) !important; }
 .hub-item-actions { display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
 .sd-del-btn { padding: 2px 7px !important; font-size: 12px !important; border: 1px solid #f1d7d7 !important; border-radius: 6px !important; background: #fff7f7 !important; color: var(--danger) !important; cursor: pointer; }

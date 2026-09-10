@@ -313,17 +313,19 @@ function _hubBillHtml(_bill, _m, _i) {
       '<span class="hub-bill-total">' + formatPrice(_bill.totalCost || 0) + ' DA</span>';
   }
 
-  const _0right = _0newMode ? '' :
-    '<button class="expense-btn expense-btn--ghost hub-edit-date" onclick="event.stopPropagation();hubEditBill(' + _bill.id + ')" title="' + escapeHtml(t('supplierEditBill')) + '">' + escapeHtml(t('supplierEditBill')) + '</button>' +
-    '<button class="expense-btn expense-btn--ghost hub-open-bill" onclick="event.stopPropagation();hubViewBill(' + _bill.id + _0preset + ')" title="' + escapeHtml(t('supplierViewBill')) + '">' + escapeHtml(t('supplierViewBill')) + '</button>' +
-    '<button class="expense-btn expense-btn--primary hub-add-item" onclick="event.stopPropagation();hubAddItem(' + _bill.id + ')" title="' + escapeHtml(t('supplierHubAddItem')) + '">' + escapeHtml(t('supplierHubAddItem')) + '</button>';
+  const _0toolbar = _0newMode ? '' :
+    '<div class="hub-bill-toolbar">' +
+    '<button class="expense-btn expense-btn--ghost hub-edit-date" onclick="hubEditBill(' + _bill.id + ')" title="' + escapeHtml(t('supplierEditBill')) + '">' + escapeHtml(t('supplierEditBill')) + '</button>' +
+    '<button class="expense-btn expense-btn--ghost hub-open-bill" onclick="hubViewBill(' + _bill.id + _0preset + ')" title="' + escapeHtml(t('supplierViewBill')) + '">' + escapeHtml(t('supplierViewBill')) + '</button>' +
+    '<button class="expense-btn expense-btn--primary hub-add-item" onclick="hubAddItem(' + _bill.id + ')" title="' + escapeHtml(t('supplierHubAddItem')) + '">' + escapeHtml(t('supplierHubAddItem')) + '</button>' +
+    '</div>';
 
   return '<div class="hub-bill hub-bill-c' + ((_i || 0) % 10) + '" data-bill="' + _bill.id + '">' +
     '<div class="hub-bill-head" onclick="hubToggleBill(' + _bill.id + ')" data-toggle="' + _bill.id + '">' +
       '<span class="hub-bill-chevron">▸</span>' +
       '<div class="hub-bill-labels">' + _0left + '</div>' +
-      '<div class="hub-bill-right">' + _0right + '</div>' +
     '</div>' +
+    _0toolbar +
     '<div class="hub-bill-body hub-bill-body--closed">' + _hubItemsHtml(_bill) + '</div>' +
   '</div>';
 }
