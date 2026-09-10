@@ -16,8 +16,8 @@
 //  - ONLY the stores present in the backup file are cleared+rewritten.
 //    A very old backup that has no "expenses" key, for example, does NOT wipe
 //    today's expenses.
-//  - The users/auditlog stores are intentionally NOT imported (unchanged
-//    behaviour) so login profiles survive a restore.
+//  - ALL stores (including users, auditlog, categories, product_variants) are
+//    now imported so a restore is a complete data recovery.
 //  - The previous snapshot + rollback behaviour is preserved: if anything
 //    fails mid-restore, the current data is put back.
 // ============================================================================
@@ -29,7 +29,7 @@
   }
 
   // Stores that use an auto-increment numeric primary key.
-  var _ID_SEED_STORES = ['sales', 'customers', 'purchases', 'expenses', 'promotions', 'zreports'];
+  var _ID_SEED_STORES = ['sales', 'customers', 'purchases', 'expenses', 'promotions', 'zreports', 'categories', 'product_variants', 'users', 'auditlog'];
 
   // Advances the auto-increment generator of a store past the highest imported
   // id. We insert a throw-away record with key = maxId + 1 and delete it, which
@@ -147,7 +147,7 @@
       var text = await file.text();
       var payload = JSON.parse(text);
 
-      var stores = ['products', 'sales', 'customers', 'settings', 'promotions', 'expenses', 'suppliers', 'purchases', 'zreports'];
+      var stores = ['products', 'sales', 'customers', 'settings', 'promotions', 'expenses', 'suppliers', 'purchases', 'zreports', 'categories', 'product_variants', 'users', 'auditlog'];
       for (var i = 0; i < stores.length; i++) {
         var store = stores[i];
         if (Array.isArray(payload[store])) {
