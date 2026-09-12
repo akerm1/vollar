@@ -10,8 +10,6 @@
   function _vappBR() { return (typeof vollarApp !== 'undefined') ? vollarApp : null; }
   if (!_vappBR()) return; // mode navigateur : import JSON manuel uniquement
 
-  var _brLoaded = false;
-
   function _brDir() {
     var s = (typeof settings !== 'undefined' && settings) ? settings : {};
     return s.hourlyExportPath || '';
@@ -85,7 +83,7 @@
     btnR.textContent = t('brRestoreBtn');
     btnR.addEventListener('click', function () { _brRestore(item); });
     var btnD = document.createElement('button');
-    btnD.type = 'button'; btnD.className = 'btn btn-sm';
+    btnD.type = 'button'; btnD.className = 'btn btn-danger btn-sm';
     btnD.textContent = t('brDeleteBtn');
     btnD.addEventListener('click', function () { _brDelete(item); });
     row.appendChild(left); row.appendChild(btnR); row.appendChild(btnD);
@@ -114,46 +112,67 @@
     list.appendChild(frag);
   }
 
-  // Inject the panel at the top of Paramètres (scripts run at the end of body,
-  // so the view markup already exists — same pattern as cart-name-style.js).
+  // Inject the panel INSIDE the native « Restauration & Import » settings card
+  // (same classes as the rest of Paramètres: form-group / btn-row / btn-*).
+  // Scripts run at the end of body, so the settings markup already exists.
   (function _brInject() {
-    var view = document.getElementById('view-settings');
-    if (!view) return;
-    var box = document.createElement('details');
-    box.id = 'br-restore-box';
-    box.style.cssText = 'margin:12px 0;';
-    var sum = document.createElement('summary');
-    sum.style.cssText = 'cursor:pointer;font-weight:700;padding:8px;';
-    sum.textContent = '♻️ ' + t('brRestoreTitle');
-    var body = document.createElement('div');
-    body.style.cssText = 'padding:8px;';
+    var fileInput = document.getElementById('file-import-full');
+    var host = fileInput ? fileInput.closest('.settings-card-body') : null;
+    if (!host) {
+      var view = document.getElementById('view-settings');
+      if (!view) return;
+      host = document.createElement('div');
+      host.className = 'settings-card-body';
+      var card = document.createElement('div');
+      card.className = 'settings-card';
+      card.appendChild(host);
+      view.insertBefore(card, view.firstChild);
+    }
+
+    var group = document.createElement('div');
+    group.className = 'form-group full';
+    group.id = 'br-restore-group';
+    group.style.marginTop = '12px';
+
+    var label = document.createElement('label');
+    label.textContent = t('brDetectedLabel');
+    group.appendChild(label);
+
+    var desc = document.createElement('p');
+    desc.style.cssText = 'font-size:12px;opacity:.75;margin:4px 0 8px;';
+    desc.textContent = t('brPanelDesc');
+    group.appendChild(desc);
+
     var hint = document.createElement('div');
     hint.id = 'br-restore-hint';
-    hint.style.cssText = 'opacity:.75;font-size:.85em;margin-bottom:6px;';
+    hint.style.cssText = 'font-size:12px;opacity:.75;margin-bottom:8px;';
     hint.textContent = t('brFolder') + ' : ' + (_brDir() || t('brDesktop'));
+    group.appendChild(hint);
+
+    var list = document.createElement('div');
+    list.id = 'br-restore-list';
+    list.innerHTML = '<div style="padding:8px;opacity:.8;">' + t('brNone') + '</div>';
+    group.appendChild(list);
+
     var bar = document.createElement('div');
-    bar.style.cssText = 'display:flex;gap:8px;margin:6px 0;flex-wrap:wrap;';
+    bar.className = 'btn-row';
+    bar.style.marginTop = '10px';
     var refresh = document.createElement('button');
-    refresh.type = 'button'; refresh.className = 'btn btn-sm';
+    refresh.type = 'button'; refresh.className = 'btn btn-secondary btn-sm';
     refresh.textContent = t('brRefresh');
     refresh.addEventListener('click', function () { _brRender(); });
     var openData = document.createElement('button');
-    openData.type = 'button'; openData.className = 'btn btn-sm';
+    openData.type = 'button'; openData.className = 'btn btn-secondary btn-sm';
     openData.textContent = t('brOpenData');
     openData.addEventListener('click', function () {
       var a = _vappBR();
       if (a && a.openDataFolder) a.openDataFolder();
     });
     bar.appendChild(refresh); bar.appendChild(openData);
-    var list = document.createElement('div');
-    list.id = 'br-restore-list';
-    list.innerHTML = '<div style="padding:8px;opacity:.8;">' + t('brNone') + '</div>';
-    body.appendChild(hint); body.appendChild(bar); body.appendChild(list);
-    box.appendChild(sum); box.appendChild(body);
-    view.insertBefore(box, view.firstChild);
-    box.addEventListener('toggle', function () {
-      if (box.open && !_brLoaded) { _brLoaded = true; _brRender(); }
-    });
+    group.appendChild(bar);
+
+    host.appendChild(group);
+    _brRender();
   })();
 
   window['backupRestoreRefresh'] = _brRender;
