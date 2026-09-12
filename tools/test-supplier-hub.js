@@ -1,4 +1,4 @@
-/* Harness to functionally exercise js/supplier-bills-hub.js in Node. */
+/* Harness to functionally exercise js/suppliers/supplier-bills-hub.js in Node. */
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
@@ -192,7 +192,7 @@ await global.dbPut('purchases', {
 });
 
 /* load the module into the same global context */
-const code = fs.readFileSync(path.join(__dirname, '..', 'js', 'supplier-bills-hub.js'), 'utf8');
+const code = fs.readFileSync(path.join(__dirname, '..', 'js', 'suppliers', 'supplier-bills-hub.js'), 'utf8');
 const vmCtx = vm.createContext(global);
 vm.runInContext(code, vmCtx, { filename: 'supplier-bills-hub.js' });
 

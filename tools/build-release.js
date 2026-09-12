@@ -119,9 +119,9 @@ function copyDirRecursive(src, dest, skipNames) {
 
 // ── Sync APP_VERSION into the staged config.js ──────────────────
 // package.json version is the single source of truth; rewrite the
-// staged js/config.js so APP_VERSION always matches the release.
+// staged js/core/config.js so APP_VERSION always matches the release.
 function syncAppVersion(version) {
-  const cfg = path.join(STAGING, 'js', 'config.js');
+  const cfg = path.join(STAGING, 'js', 'core', 'config.js');
   if (!fs.existsSync(cfg)) return;
   let code = fs.readFileSync(cfg, 'utf8');
   const before = code;
@@ -197,10 +197,24 @@ function outputRelative(p) {
   return path.relative(ROOT, p) || p;
 }
 
+// ── Recursively list js files (relative paths, e.g. 'core/config.js') ──
+function listJsFiles(dir) {
+  const out = [];
+  const walk = (d, prefix) => {
+    for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+      const rel = prefix ? prefix + '/' + entry.name : entry.name;
+      if (entry.isDirectory()) walk(path.join(d, entry.name), rel);
+      else if (entry.name.endsWith('.js')) out.push(rel);
+    }
+  };
+  walk(dir, '');
+  return out.sort();
+}
+
 // ── Obfuscate all JS files ──────────────────────────────────────
 function obfuscateJS() {
   const jsStage = path.join(STAGING, 'js');
-  const files = fs.readdirSync(jsStage).filter(f => f.endsWith('.js'));
+  const files = listJsFiles(jsStage);
   console.log(`🔒 Obfuscating ${files.length} JS files...`);
 
   for (const f of files) {

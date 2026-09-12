@@ -1,4 +1,4 @@
-/* Harness: double-submit lock on completeTransaction (js/transaction.js). */
+/* Harness: double-submit lock on completeTransaction (js/transactions/transaction.js). */
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
@@ -124,7 +124,7 @@ function stockById(stores, barcode) {
 /* ============ TEST 1: two rapid clicks = ONE sale ============ */
 (async function () {
   const s = buildSandbox();
-  load(s, 'js/transaction.js');
+  load(s, 'js/transactions/transaction.js');
 
   s.cart = [
     { barcode: 'P1', name: 'Tissu', price: 50, qty: 2, reducedPrice: null, unit: 'mètre', reference: '' },
@@ -154,7 +154,7 @@ function stockById(stores, barcode) {
 /* ============ TEST 2: ask-customer flow does NOT deadlock the lock ============ */
 (async function () {
   const s = buildSandbox();
-  load(s, 'js/transaction.js');
+  load(s, 'js/transactions/transaction.js');
 
   s.cart = [{ barcode: 'P1', name: 'Tissu', price: 50, qty: 1, reducedPrice: null, unit: 'pièce', reference: '' }];
   s.__stores.products.push({ barcode: 'P1', name: 'Tissu', price: 50, purchasePrice: 30, stock: 10 });

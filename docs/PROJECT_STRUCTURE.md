@@ -21,6 +21,7 @@ This document gives a complete map of the **Vollar POS** project so an AI agent 
 ```
 software pos13/
 ├── index.html                      # Single-page app shell (loads all scripts in order)
+├── README.md                       # Quick start + structure overview
 ├── icon.svg                        # App icon (SVG)
 │
 ├── style.css                       # Main stylesheet
@@ -28,33 +29,52 @@ software pos13/
 ├── modern-views.css                # Modern view layouts
 ├── classic-pos.css                 # Retro Windows-terminal POS layout styles
 │
-├── js/                             # ALL application logic (77 files, loaded by index.html)
-│   ├── config.js ... app-backup.js # (see §3 load order + §4 per-file functions)
+├── js/                             # ALL application logic (83 files, loaded by index.html)
+│   ├── core/         # config, state, dom, utils, i18n, audio, focus, database, backup, license, restore-safety
+│   ├── auth/         # auth, users, audit, permissions
+│   ├── scanner/      # scanner state/search/barcode/suggestions/setup/main + barcode-aliases
+│   ├── cart/         # cart state/add/ops/render/quick/router/name-style + checkout widgets
+│   ├── inventory/    # product list/categories/form/delete/edit/exports + pack-conversion
+│   ├── customers/    # customer list/select/form/detail/payment/debug
+│   ├── transactions/ # promotions, customer-ask, transaction, payment, variants, print, zreport
+│   ├── analytics/    # analytics core/UI/charts + day-export
+│   ├── settings/     # settings, scanner-settings, themes, exports, keyboard
+│   ├── views/        # structures, classic-pos, button-context, qr-code
+│   ├── suppliers/    # suppliers, supplier-bills-hub
+│   ├── expenses/     # dépenses (CRUD + catégories + récurrentes)
+│   └── bootstrap/    # app init/startup/setup/welcome/update/backup
 ├── electron/
 │   ├── main.js                     # Electron main process (secure shell)
 │   └── preload.js                  # Electron preload (context bridge)
 ├── tools/
 │   ├── verify.js                   # Sanity checker (syntax, load order, shared-context)
 │   ├── build-release.js            # Build pipeline (verify → stage → obfuscate → package)
-│   └── samtex-cleanup.bat          # Cleanup helper batch
+│   └── test-*.js                   # Test harnesses (restore-safety, transaction-lock, supplier-hub)
 ├── build/
 │   ├── icon.ico                    # Windows installer/app icon
 │   └── icon.png                    # Icon (PNG)
+├── docs/
+│   ├── PROJECT_STRUCTURE.md        # THIS document
+│   ├── LISEZ-MOI.md                # French readme
+│   ├── HAR.md / TODO.md            # Historical notes / roadmap
 ├── release/                        # Build output (installers) — gitignored
 ├── node_modules/                   # dev dependencies — gitignored
 ├── package.json                    # npm scripts + electron-builder config
-├── AGENTS.md                       # Agent guidelines (this project's rules)
-├── LISEZ-MOI.md                    # French readme
-└── PROJECT_STRUCTURE.md            # THIS document
+└── AGENTS.md                       # Agent guidelines (this project's rules)
 ```
+
+> **js/ loading note:** the `js/` files are grouped into the feature subfolders above for
+> readability, but the **only thing that matters at runtime is the order of the `<script>`
+> tags in `index.html` (SECTION 13)** — all 83 files load into ONE shared global scope in
+> that order. Grouping does not imply load order.
 
 ---
 
 ## 3. Script Load Order (critical)
 
-`index.html` loads all scripts from `js/` with **classic `<script>` tags in a specific order**. There are **no ES modules and no imports** — everything lives in the global scope. **Do NOT reorder** these; the order is load-order dependent (state.js must load before anything that reads settings; app-bootstrap.js loads last).
+`index.html` loads all scripts from `js/` with **classic `<script>` tags in a specific order**. There are **no ES modules and no imports** — everything lives in the global scope. **Do NOT reorder** these; the order is load-order dependent (state.js must load before anything that reads settings; app-bootstrap.js loads last). Files now live in feature subfolders (`js/core/`, `js/cart/`, …) for readability, but the tag sequence in `index.html` is the only thing that matters. `node tools/verify.js` enforces this match.
 
-The exact load order (77 files):
+The exact load order (83 files; `folder/file.js` shown for clarity):
 
 1. `config.js` — constants
 2. `state.js` — global state

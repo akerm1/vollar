@@ -1,4 +1,4 @@
-/* Harness for js/restore-safety.js + js/exports.js restore semantics. */
+/* Harness for js/core/restore-safety.js + js/settings/exports.js restore semantics. */
 const vm = require('vm');
 const fs = require('fs');
 const path = require('path');
@@ -85,8 +85,8 @@ function load(sandbox, file) {
 /* ============ TEST A: clean replace, survivors kept, ids seeded ============ */
 (async function () {
   const s = buildSandbox();
-  load(s, 'js/exports.js');
-  load(s, 'js/restore-safety.js');
+  load(s, 'js/settings/exports.js');
+  load(s, 'js/core/restore-safety.js');
 
   // Pre-existing live data (what the shop currently has).
   s.__stores.products.push({ barcode: 'P1', name: 'Old', stock: 5 });
@@ -146,8 +146,8 @@ function load(sandbox, file) {
 /* ============ TEST B: rollback on mid-import failure ============ */
 (async function () {
   const s = buildSandbox();
-  load(s, 'js/exports.js');
-  load(s, 'js/restore-safety.js');
+  load(s, 'js/settings/exports.js');
+  load(s, 'js/core/restore-safety.js');
 
   s.__stores.products.push({ barcode: 'KEEP', name: 'Survivor', stock: 9 });
   s.__stores.sales.push({ id: 42, grandTotal: 1 });
@@ -175,8 +175,8 @@ function load(sandbox, file) {
 /* ============ TEST C: invalid backup rejected ============ */
 (async function () {
   const s = buildSandbox();
-  load(s, 'js/exports.js');
-  load(s, 'js/restore-safety.js');
+  load(s, 'js/settings/exports.js');
+  load(s, 'js/core/restore-safety.js');
   const res = await s.doSafeImport({ version: '2.0', products: 'not-an-array' });
   ok(res === false, 'malformed backup rejected (validateBackupData)');
   ok(s.__lastToast && s.__lastToast.m === 'invalidBackupFormat', 'invalid-format toast shown');

@@ -200,9 +200,24 @@ function runInSandbox(file, context) {
 const scripts = readScriptTags();
 console.log('Indexed scripts:', scripts.length);
 
+// Recursively list js files (relative to the js/ dir), e.g. 'core/config.js',
+// 'scanner/scanner-main.js'. js/ is organised into feature subfolders.
+function listJsFiles(dir) {
+  const out = [];
+  const walk = (d, prefix) => {
+    for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+      const rel = prefix ? prefix + '/' + entry.name : entry.name;
+      if (entry.isDirectory()) walk(path.join(d, entry.name), rel);
+      else if (entry.name.endsWith('.js')) out.push(rel);
+    }
+  };
+  walk(dir, '');
+  return out.sort();
+}
+
 // ---- 1. SYNTAX ----
 console.log('\n[1/3] Syntax check (vm.Script compile)');
-const jsFiles = fs.readdirSync(JS_DIR).filter(f => f.endsWith('.js')).sort();
+const jsFiles = listJsFiles(JS_DIR);
 for (const f of jsFiles) {
   const file = path.join(JS_DIR, f);
   try {
@@ -218,9 +233,11 @@ console.log('\n[2/3] Load-order cross-check');
 for (const s of scripts) {
   if (!fs.existsSync(path.join(DIR, s))) fail(`index.html references missing file: ${s}`);
 }
+// Compare by basename — every js file name is unique across the js/ tree.
 const loaded = new Set(scripts.map(s => path.basename(s)));
 for (const f of jsFiles) {
-  if (!loaded.has(f) && !NOT_LOADED_OK.has(f)) fail(`orphan js file never loaded by index.html: ${f}`);
+  if (!loaded.has(path.basename(f)) && !NOT_LOADED_OK.has(path.basename(f)))
+    fail(`orphan js file never loaded by index.html: ${f}`);
 }
 if (!failures) ok('all index.html scripts exist, no orphan js files');
 
