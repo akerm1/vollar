@@ -1,6 +1,6 @@
 # Vollar POS — Project Structure & Documentation
 
-This document gives a complete map of the **Vollar POS** project so an AI agent (or developer) can understand and safely modify the codebase. It reflects the **2.0.1** source restored from the installer.
+This document gives a complete map of the **Vollar POS** project so an AI agent (or developer) can understand and safely modify the codebase. It reflects the current source on `master` (v2.0.22).
 
 ---
 
@@ -12,7 +12,7 @@ This document gives a complete map of the **Vollar POS** project so an AI agent 
 - **Runs by:** opening `index.html` directly, serving statically (VS Code Live Server), or via the Electron app (`npm start`).
 - **Secured desktop build:** `electron/main.js` + `electron/preload.js` load `index.html` via `loadFile()`, packaged by `electron-builder` with the JS **obfuscated** so the shipped `.exe` is very hard to read.
 
-> ⚠️ Note: the `js/` files currently in this folder are **obfuscated** (they were extracted from the built installer). The app is fully functional, but the code is not human-readable. The browser source should be kept readable for maintenance.
+> ℹ️ Note: the `js/` files are kept **readable** in this repo (browser source). They are grouped into feature subfolders (`js/core/`, `js/cart/`, …) for readability. The Electron desktop build obfuscates them only at packaging time via `npm run dist` — the shipped `.exe` is hard to read, but the source here stays readable for maintenance.
 
 ---
 
@@ -158,7 +158,7 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 
 ## 4. Per-File Functions
 
-### Core
+### Core (`js/core/`)
 - **config.js** — Global constants: `DB_NAME` (`ShopPOS_v13`, version 16), `APP_VERSION`, `DEFAULT_VAT_RATE`, `DEFAULT_LOW_STOCK`, `DEFAULT_CURRENCY`, `SCAN_TIMEOUT`, `BARCODE_CONFIG`.
 - **state.js** — Shared global state: `currentView`, `db`, `audioCtx`, `formInputActive`, `focusLockEnabled`, `cart`, `customers`, `suppliers`, `currentUser`, `settings`, `quickCart`. Check here before declaring new globals.
 - **dom.js** — `DOM.*` cache of frequently used element references (views, buttons, tables). Avoid repeated `getElementById`.
@@ -166,17 +166,17 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **audio.js** — Sound engine: `playScan`, `playSuccess`, `playError`, `playWarning`, `playTone`.
 - **focus.js** — `lockFocus()` returns focus to the scanner receiver; manages focus lock state.
 
-### Auth / Users
+### Auth / Users (`js/auth/`)
 - **auth.js** — `hashPin`, `login`, `requireAdminPin`, PIN hashing. Default admin PIN `0000` with `mustChangePin:true`. PINs stored only as hashes.
 - **users.js** — `loadUsers`, `renderUserList`, `loadUsers`; user CRUD.
 - **permissions.js** — `hasPermission(perm)` role-based access control.
 - **audit.js** — `AUDIT_ACTIONS` map (`SALE_CREATED`, `SALE_DELETED`, `SALE_EDITED`, …) + audit log recording.
 
-### i18n
+### i18n (`js/core/`)
 - **language-data.js** — `translations.fr` object (data only). Keys added here before the `fr` closing brace.
 - **language.js** — `t(key, params)` translation, `applyLanguage()`, `formatDate()`, `getCurrency()`, `getShopName()`, `applyBrand()`.
 
-### Scanner
+### Scanner (`js/scanner/`)
 - **scanner-state.js** — Scanner caches: `cachedProducts`, `productsCacheTimestamp`, `CACHE_TTL`, `searchResultsCache`, selected index.
 - **barcode-aliases.js** — `normalizeBarcodeAliases` — normalizes scanned barcodes against alias tables.
 - **scanner-search.js** — `getCachedProducts`, `fastSearch` product lookup from cache/IndexedDB.
@@ -185,14 +185,14 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **scanner-setup.js** — `setupScannerReceiver`, wires the scanner input field.
 - **scanner-main.js** — `resetScanner`, scanner entry point, exports scanner functions.
 
-### Data / Database
+### Data / Database (`js/core/`)
 - **database.js** — IndexedDB layer: `openDB()`, `dbGet(store,key)`, `dbPut(store,obj)` (auto-assigns id), `dbDelete`, `dbClear`, `dbGetAll`. Manages DB version/schema upgrade.
 - **backup.js** — `createAutoBackup`, `manualBackup`, `downloadFullBackupOnRefresh`, toggle state, auto-backup interval.
 
-### Checkout Persist
+### Checkout Persist (`js/cart/`)
 - **checkout-persist.js** — `window.saveCheckoutPending`, `window.clearCheckoutPending`, `window.restoreCheckoutPending`; persists pending cart + fast-clients to localStorage under `vollar_checkout_pending`.
 
-### Cart
+### Cart (`js/cart/`)
 - **cart-state.js** — Cart globals: `window.cart`, `window.quickCart`, `quickCustomerMode`, `quickCustomerSnapshot`, meter-prompt state.
 - **cart-add.js** — `addToCart`, `updateLastScannedItem`; adds products to cart (main + quick).
 - **cart-meter.js** — `showMeterQuantityPrompt` — meter/decimal quantity prompt (for metre products).
@@ -202,7 +202,7 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **fast-clients.js** — `fastListTotals`, fast client pre-selected list + totals.
 - **cart-router.js** — `switchView(view)` — switches between checkout/inventory/customers/analytics/settings views with permission checks.
 
-### Transactions / Payment
+### Transactions / Payment (`js/transactions/` + `js/cart/`)
 - **promotions.js** — `loadPromotions`, `window.activePromotions`, promotion application/discount logic.
 - **customer-ask.js** — `openAskCustomerModal`, ask-customer flow during checkout.
 - **transaction.js** — `completeTransaction(...)` — finalizes a sale (deduct stock, save sale, audit, print, refresh caches).
@@ -210,7 +210,7 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **product-grid.js** — Product grid rendering (`getProductImageMarkup`, grid cells); `refreshProductsCache`.
 - **quick-boxes.js** — `QUICK_BOXES_COUNT` (12), quick-product boxes in checkout, persisting via `settings.quickBoxes`.
 
-### Inventory
+### Inventory (`js/inventory/`)
 - **inventory-list.js** — `_inventorySearchQuery`, `getFilteredInventoryProducts`, `loadInventory`, `renderInventoryTable`.
 - **inventory-categories.js** — `loadCategoriesList`, category management.
 - **inventory-form.js** — `setupProductForm`, add-product form logic.
@@ -219,7 +219,7 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **pack-conversion.js** — `suggestUnitName`, unit/format (mètre, pièce, etc.) conversion logic.
 - **inventory-exports.js** — exports inventory; sensitive-price toggle handling.
 
-### Customers
+### Customers (`js/customers/`)
 - **customers-list.js** — `loadCustomers`, customer list rendering.
 - **customers-select.js** — `populateCustomerSelect`, customer dropdown.
 - **customers-form.js** — `setupCustomerForm`, add/edit customer form.
@@ -227,25 +227,25 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **customers-payment.js** — `setupPayDebtButton`, debt payment flow.
 - **customers-debug.js** — `window.testCustomerDropdown`, debug/test helpers.
 
-### Variants
+### Variants (`js/transactions/`)
 - **variants.js** — `loadVariants(parentBarcode)`, product variant (color/size) management.
 
-### Analytics
+### Analytics (`js/analytics/`)
 - **analytics-core.js** — Analytics data layer: `_analyticsCache`, `processedSales`, metrics computation (revenue, profit, best sellers, etc.).
 - **analytics-ui.js** — Analytics dashboard UI state/rendering (`_analyticsCollapsedCache`).
 - **day-export.js** — `buildDayExportPanelHtml`, end-of-day export panel.
 - **analytics-charts.js** — Pure Canvas chart module (self-contained IIFE). **Do NOT split** (cohesive shared closure state).
 
-### Themes / Structures
+### Themes / Structures (`js/settings/` + `js/views/`)
 - **themes-data.js** — `THEMES` object (moderna, etc.) with CSS custom property variables. Data only.
 - **themes.js** — Theme engine: `currentTheme`, applies CSS variables; `applyTheme`.
 
-### Exports / Settings / Scanner settings
+### Exports / Settings / Scanner settings (`js/settings/`)
 - **exports.js** — `exportCSV`, `exportJSON` (full backup), `doSafeImport`, `IMPORT_STORES` (import handles suppliers/purchases).
 - **settings.js** — `DEFAULT_SETTINGS` (vatRate, lowStockThreshold, currency, openingFloat, shopName, `negativeStock`, `confirmClear`, `quickBoxes`).
 - **scanner-settings.js** — Scanner settings panel + `setupScannerTest` live scan test.
 
-### Classic POS / Keyboard / Button context / QR / Print / Z-report
+### Classic POS / Keyboard / Button context / QR / Print / Z-report (`js/views/` + `js/settings/` + `js/transactions/`)
 - **structures.js** — `STRUCTURES` (`default`, `classic`, …), `applyStructure()`, `currentStructure`, structure selector + mockups.
 - **classic-pos.js** — Retro Windows-terminal POS view (self-contained IIFE) for `structure-classic`; reuses `window.cart`/`addToCart`/`completeTransaction`/`printCart`; hooks `window.onStructureChange`.
 - **keyboard.js** — `setupKeyboardShortcuts`, keyboard shortcut bindings.
@@ -254,11 +254,11 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **print.js** — Printing module (single method, no popup); `printCart`, `testPrint`.
 - **zreport.js** — Z-report generation, `isDayLocked`, day locking.
 
-### Suppliers & Expenses
+### Suppliers & Expenses (`js/suppliers/` + `js/expenses/`)
 - **suppliers.js** — Supplier (fournisseur) + purchase (achat) CRUD, `loadSuppliers`, reception editing. Reads from and writes to `suppliers` and `purchases` IndexedDB stores.
 - **expenses.js** — Expenses (dépenses) CRUD, custom categories, payment methods, recurring monthly expenses (`recurId`), day-by-day view, CSV export. Integrated into net profit and Z-report.
 
-### Bootstrap / App lifecycle
+### Bootstrap / App lifecycle (`js/bootstrap/`)
 - **app-clock.js** — `updateClock`, live clock display.
 - **app-update.js** — `getStoredAppVersion`, `LAST_VERSION_KEY`, version/update check.
 - **app-setup.js** — `setupMainButtons`, button/nav wiring (clones + wires DOM buttons).
@@ -269,12 +269,12 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 - **app-bootstrap.js** — `bootstrapApp` + auto-start; opens DB, creates default admin, loads data, wires everything.
 - **app-backup.js** — `buildBackupPayload`, `AUTO_BACKUP_FS_KEY`, auto-backup interval, `restoreAutoBackup` (folder-handle restore).
 
-### Electron
+### Electron (`electron/`)
 - **electron/main.js** — Electron main process: single-instance lock, `BrowserWindow` (1440×900, `contextIsolation`, dev-tools blocked, no menu, navigate lockdown), `loadFile('index.html')`, icon `build/icon.ico`, backup folder permissions.
 - **electron/preload.js** — Context bridge exposing minimal safe APIs to the renderer.
 
-### Tools
-- **tools/verify.js** — Sanity checker: (1) syntax-compiles each `js/*.js`, (2) checks `index.html` `<script>` tags match `js/` (missing/orphan files; `qz-tray.js` whitelisted), (3) loads all scripts in-order in a shared sandbox — the real load-order test. Run via `node tools/verify.js`.
+### Tools (`tools/`)
+- **tools/verify.js** — Sanity checker: (1) syntax-compiles each `js/*.js`, (2) checks `index.html` `<script>` tags match `js/` (missing/orphan files), (3) loads all scripts in-order in a shared sandbox — the real load-order test. Run via `node tools/verify.js`.
 - **tools/build-release.js** — Full build pipeline: verify source → stage copy (index.html, css, js/, electron/, icons, package.json) into `_build_staging_<ts>/` → obfuscate every `js/*.js` with `javascript-obfuscator` → minify css → run `electron-builder` (junction to root `node_modules`) → output installers to `release/` (or `SAMTEX_OUTPUT`).
 
 ---
@@ -333,7 +333,7 @@ npm install          # Install electron, electron-builder, javascript-obfuscator
 - **Stock/quantity**: quantities may be decimals (unit `mètre`). Preserve decimal handling (`step="0.1"`, `parseFloat`).
 - **Stock settings**: respect `settings.negativeStock` (`allow`/`prevent`/`warn`) and `settings.confirmClear`.
 - **Script load order**: critical — never reorder `index.html` script tags; run `node tools/verify.js` after adding/removing a js file.
-- **Do NOT modify / split**: `js/qz-tray.js` (vendored, normally absent from the shipped build), `js/analytics-charts.js` (cohesive IIFE). Root `themes.js` is an orphan/unused copy — active themes are `js/themes-data.js` + `js/themes.js`.
+- **Do NOT modify / split**: `js/analytics/analytics-charts.js` (cohesive canvas chart module wrapped in one IIFE — shared closure state).
 
 ---
 
