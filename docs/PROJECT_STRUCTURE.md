@@ -1,6 +1,6 @@
 # Vollar POS — Project Structure & Documentation
 
-This document gives a complete map of the **Vollar POS** project so an AI agent (or developer) can understand and safely modify the codebase. It reflects the current source on `master` (v2.0.22).
+This document gives a complete map of the **Vollar POS** project so an AI agent (or developer) can understand and safely modify the codebase. It reflects the current source on `master` (v2.0.23).
 
 ---
 
