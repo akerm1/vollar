@@ -242,6 +242,7 @@ The exact load order (83 files; `folder/file.js` shown for clarity):
 
 ### Exports / Settings / Scanner settings (`js/settings/`)
 - **exports.js** — `exportCSV`, `exportJSON` (full backup), `doSafeImport`, `IMPORT_STORES` (import handles suppliers/purchases).
+- **backup-restore.js** — Panneau Paramètres « ♻️ Restaurer une sauvegarde » : liste les `backup_*.json` trouvés (dossier d'export horaire + Bureau), restaure via `doSafeImport` (bridge `vollarApp.readBackupFile`, desktop uniquement).
 - **settings.js** — `DEFAULT_SETTINGS` (vatRate, lowStockThreshold, currency, openingFloat, shopName, `negativeStock`, `confirmClear`, `quickBoxes`).
 - **scanner-settings.js** — Scanner settings panel + `setupScannerTest` live scan test.
 

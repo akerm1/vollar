@@ -25,6 +25,10 @@ contextBridge.exposeInMainWorld('vollarApp', {
     // Delete a single file.
     deleteFile: (filePath) => ipcRenderer.invoke('delete-file', filePath),
 
+    // Read one of the app's own backup files back (restore panel).
+    readBackupFile: (dirPath, fileName) =>
+        ipcRenderer.invoke('read-backup-file', dirPath, fileName),
+
     // Get the user's Desktop path for fallback saves.
     getDesktopPath: () => ipcRenderer.invoke('get-desktop-path'),
 

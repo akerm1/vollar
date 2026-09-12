@@ -181,6 +181,20 @@ ipcMain.handle('delete-file', async (event, filePath) => {
     }
 });
 
+// Read one of the app's own backup files back (restore panel). Same guard as
+// save/delete: only backup_/export_ .json basenames are ever readable.
+ipcMain.handle('read-backup-file', async (event, dirPath, fileName) => {
+    try {
+        if (!isAllowedDataFile(fileName)) {
+            return { ok: false, error: 'Refused: file name not allowed (' + fileName + ')' };
+        }
+        const content = await fs.promises.readFile(path.join(dirPath, fileName), 'utf8');
+        return { ok: true, content };
+    } catch (err) {
+        return { ok: false, error: err.message };
+    }
+});
+
 ipcMain.handle('get-desktop-path', async () => {
     return { path: app.getPath('desktop') };
 });
