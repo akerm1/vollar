@@ -126,6 +126,7 @@
   // and the automatic startup restore (restoreAutoBackup). resolveOriginal
   // returns the replacement-free implementation for the given entry point.
   async function _safeRestoreAutoBackup() {
+    var snapshot = null;
     try {
       var folder = typeof loadSavedFolderHandle === 'function' ? await loadSavedFolderHandle() : null;
       if (!folder || typeof folder.entries !== 'function') return false;
@@ -147,6 +148,21 @@
       var text = await file.text();
       var payload = JSON.parse(text);
 
+      // Validate BEFORE touching any data (same guard as the manual restore).
+      var valid = false;
+      if (typeof validateBackupData === 'function') {
+        try { valid = validateBackupData(payload); } catch (e) { valid = false; }
+      }
+      if (!valid) {
+        console.error('Auto-restore aborted: newest backup file is not valid, data left untouched');
+        return false;
+      }
+
+      // Snapshot current data so we can roll back if the restore fails part-way.
+      if (typeof snapshotDataStores === 'function' && typeof IMPORT_STORES !== 'undefined') {
+        try { snapshot = await snapshotDataStores(IMPORT_STORES); } catch (e) { snapshot = null; }
+      }
+
       var stores = ['products', 'sales', 'customers', 'settings', 'promotions', 'expenses', 'suppliers', 'purchases', 'zreports', 'categories', 'product_variants', 'users', 'auditlog'];
       for (var i = 0; i < stores.length; i++) {
         var store = stores[i];
@@ -162,6 +178,14 @@
       return true;
     } catch (e) {
       console.error('Auto-restore error:', e);
+      if (snapshot) {
+        try {
+          await restoreSnapshot(snapshot);
+          console.error('✅ Auto-restore rolled back to previous data');
+        } catch (e2) {
+          console.error('Auto-restore rollback failed:', e2);
+        }
+      }
       return false;
     }
   }
