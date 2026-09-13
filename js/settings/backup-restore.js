@@ -176,4 +176,47 @@
   })();
 
   window['backupRestoreRefresh'] = _brRender;
+
+  // Exposed for the crash-recovery flow (maybeOfferCrashRestore) and reused by
+  // any future callers: newest-first list of the app's own backup files.
+  window['backupRestoreListSources'] = _brListSources;
+
+  // === CRASH / POWER-LOSS RECOVERY ==========================================
+  // Called once at startup (see app-init.js). If the previous run did not quit
+  // cleanly (electron/main.js session.marker), we:
+  //   - restore the newest backup automatically ONLY when the database is empty
+  //     (crash wiped / it was never populated) — a real, safe recovery;
+  //   - otherwise just notify: IndexedDB is the durable source of truth and
+  //     rolling it back to a backup would silently discard newer sales.
+  // All restores go through doSafeImport (validation + snapshot + rollback).
+  async function maybeOfferCrashRestore() {
+    var app = _vappBR();
+    if (!app || !app.getCrashFlag) return; // browser mode: N/A
+    var crashed = false;
+    try { crashed = await app.getCrashFlag(); } catch (e) { crashed = false; }
+    if (!crashed) return; // previous run quit cleanly
+
+    var dbEmpty = false;
+    try {
+      var prods = await dbGetAll('products');
+      var sales = await dbGetAll('sales');
+      dbEmpty = !prods.length && !sales.length;
+    } catch (e) { dbEmpty = false; }
+
+    if (dbEmpty) {
+      var items = [];
+      try { items = await _brListSources(); } catch (e) { items = []; }
+      if (!items.length) {
+        showToast(t('crashNotifyNoBackup') || 'Aucune sauvegarde trouvée à restaurer.', 'info');
+        return;
+      }
+      var ok = await showConfirm(t('crashRestoreEmptyBody') || 'Arrêt anormal détecté. La base est vide — restaurer le dernier backup ?', { title: t('crashRestoreTitle') || 'Récupération après arrêt anormal' });
+      if (!ok) return;
+      await _brRestore(items[0]);
+      return;
+    }
+
+    showToast(t('crashNotify') || 'L\'arrêt précédent était anormal, mais vos données sont intactes. Les backups sont dans Paramètres > Restauration.', 'info');
+  }
+  window['maybeOfferCrashRestore'] = maybeOfferCrashRestore;
 })();

@@ -306,6 +306,34 @@ function checkUpdateMetadata() {
   }
 }
 
+// ── Per-client update defaults ──────────────────────────────────
+// Some clients want the app to self-update, some don't, and each may need a
+// different GitHub source. Env vars (optional) inject a small script into the
+// staged index.html so every build can hard-code the default:
+//   SAMTEX_UPDATES_DISABLED=1            → updates OFF for this client
+//   SAMTEX_GITHUB_OWNER=myorg            → default GitHub owner
+//   SAMTEX_GITHUB_REPO=myrepo            → default GitHub repo
+// The installer can still be switched in-app later (Settings > Système);
+// these are just the defaults the first run starts from.
+function applyUpdateDefaults() {
+  const owner = (process.env.SAMTEX_GITHUB_OWNER || '').trim();
+  const repo = (process.env.SAMTEX_GITHUB_REPO || '').trim();
+  const disabled = process.env.SAMTEX_UPDATES_DISABLED === '1';
+  if (!owner && !repo && !disabled) return;
+  const index = path.join(STAGING, 'index.html');
+  if (!fs.existsSync(index)) { console.warn('  ⚠ applyUpdateDefaults: staged index.html not found'); return; }
+  const parts = [];
+  if (disabled) parts.push('enabled:false');
+  if (owner) parts.push(`owner:${JSON.stringify(owner)}`);
+  if (repo) parts.push(`repo:${JSON.stringify(repo)}`);
+  const script = `<script>window.__updateDefaults={${parts.join(',')}};</script>\n`;
+  let html = fs.readFileSync(index, 'utf8');
+  if (html.indexOf('</body>') !== -1) html = html.replace('</body>', script + '</body>');
+  else html += script;
+  fs.writeFileSync(index, html, 'utf8');
+  console.log(`  🎛 Update defaults baked: {${parts.join(', ')}}`);
+}
+
 // ── MAIN ─────────────────────────────────────────────────────────
 function main() {
   console.log('=== Vollar POS — Secured Build ===\n');
@@ -321,6 +349,7 @@ function main() {
   console.log('');
 
   stage();
+  applyUpdateDefaults();
   obfuscateJS();
   minifyCSS();
 

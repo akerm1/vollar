@@ -23,7 +23,7 @@ function performHourlyExport(){
     _hourlyExportLastTime=now.toISOString();
     _hourlyExportNextTime=new Date(now.getTime()+_hourlyExportMinutes*60000).toISOString();
     return a.saveFile(_hourlyExportPath,filename,json).then(function(res){
-      if(res&&res.ok){console.log('Hourly export saved: '+filename);cleanupHourlyBackups();}
+      if(res&&res.ok){console.log('Hourly export saved: '+filename);cleanupHourlyBackups();_mirrorBackupFile(filename,json);}
       else{console.error('Hourly export failed:',res&&res.error);}
       return res;
     });
@@ -32,14 +32,20 @@ function performHourlyExport(){
 function cleanupHourlyBackups(){
   var a=_vapp();
   if(!_hourlyExportPath||!a||!a.listFiles||!a.deleteFile)return;
-  // Only prune HOURLY auto-export files — never shutdown (`backup_SHUTDOWN_…`)
-  // or manually saved backups, which are meant for recovery.
-  var hourlyRe=/^backup_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.json$/;
+  // Only prune disposable periodic backups: hourly exports
+  // (`backup_YYYY-…-MM.json`) and per-transaction auto-backups
+  // (`backup_YYYY-…-SS.json`). Never touch shutdown backups
+  // (`backup_SHUTDOWN_…`) or manual ones kept for recovery, and always keep
+  // the newest 3 backups regardless of age so the folder is never emptied.
+  var backupRe=/^backup_(?!SHUTDOWN_)[A-Za-z0-9._-]+\.json$/;
+  var KEEP_NEWEST=(typeof _backupKeepCount==='number')?_backupKeepCount:3;
   a.listFiles(_hourlyExportPath).then(function(result){
     if(!result||!result.files)return;
     var cutoff=Date.now()-_hourlyExportRetention*24*60*60*1000;
-    result.files.forEach(function(f){
-      if(f.name&&hourlyRe.test(f.name)&&f.mtime<cutoff){a.deleteFile(_hourlyExportPath+'/'+f.name)['catch'](function(){});}
+    var candidates=result.files.filter(function(f){return f.name&&backupRe.test(f.name);});
+    candidates.sort(function(x,y){return (y.mtime||0)-(x.mtime||0);});
+    candidates.forEach(function(f,idx){
+      if(idx>=KEEP_NEWEST&&(f.mtime||0)<cutoff){a.deleteFile(_hourlyExportPath+'/'+f.name)['catch'](function(){});}
     });
   })['catch'](function(){});
 }
@@ -60,6 +66,8 @@ function setHourlyExportFromSettings(enabled,minutes,retention,path){
   _startHourlySchedule();
   if(_hourlyExportEnabled&&_hourlyExportPath)performHourlyExport();
   if(typeof updateHourlyExportUI==='function')updateHourlyExportUI(_hourlyExportEnabled,_hourlyExportMinutes,_hourlyExportRetention,_hourlyExportPath);
+  if(typeof updateBackupMirrorUI==='function')updateBackupMirrorUI();
+  if(typeof refreshDriveWarnings==='function')setTimeout(refreshDriveWarnings,0);
 }
 window['pickHourlyExportFolder']=pickHourlyExportFolder;
 window['performHourlyExport']=performHourlyExport;
@@ -75,8 +83,8 @@ function performShutdownBackup(){
     var json=JSON.stringify(payload,null,2);
     var ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
     var filename='backup_SHUTDOWN_'+ts+'.json';
-    if(_hourlyExportPath){return a.saveFile(_hourlyExportPath,filename,json);}
-    if(a.getDesktopPath){return a.getDesktopPath().then(function(r){return r&&r.path?a.saveFile(r.path,filename,json):null;});}
+    if(_hourlyExportPath){return a.saveFile(_hourlyExportPath,filename,json).then(function(res){if(res&&res.ok)_mirrorBackupFile(filename,json);return res;});}
+    if(a.getDesktopPath){return a.getDesktopPath().then(function(r){if(r&&r.path){return a.saveFile(r.path,filename,json).then(function(res){if(res&&res.ok)_mirrorBackupFile(filename,json);return res;});}return null;});}
     return null;
   })['catch'](function(e){console.error('Shutdown backup error:',e);return null;});
 }
@@ -130,4 +138,125 @@ window['updateHourlyExportUI'] = updateHourlyExportUI;
   if (typeof updateHourlyExportUI === 'function') {
     updateHourlyExportUI(settings.hourlyExportEnabled === true, settings.hourlyExportMinutes, settings.hourlyExportRetention, settings.hourlyExportPath);
   }
+  if (typeof updateBackupMirrorUI === 'function') updateBackupMirrorUI();
+  if (typeof updateBackupDestDisplay === 'function') updateBackupDestDisplay();
+  if (typeof refreshDriveWarnings === 'function') setTimeout(refreshDriveWarnings, 500);
 })();
+
+// === DESKTOP HARDENING: mirror copy + real-file auto-backup + drive warnings ===
+// Browser behaviour is untouched — every desktop-only branch is guarded by the
+// vollarApp bridge (_vapp()).
+
+var _backupKeepCount = 3; // see cleanupHourlyBackups
+
+// Write the same backup JSON to the optional "second folder" (settings.backupMirrorPath).
+function _mirrorBackupFile(name, content) {
+  var a = _vapp();
+  if (!a || !a.saveFile) return Promise.resolve();
+  var mirror = settings && settings.backupMirrorPath;
+  if (!mirror) return Promise.resolve();
+  return a.saveFile(mirror, name, content).then(function (r) {
+    if (r && r.ok) console.log('Mirror backup saved: ' + name);
+    else console.error('Mirror backup failed:', r && r.error);
+    return r;
+  });
+}
+
+// Auto-backup delivery, desktop-aware. The minified performAutoBackupDownload
+// falls back to a browser Blob download when no showDirectoryPicker is present
+// — in Electron that landed in the Chromium download dir. When an export folder
+// is configured, write a real file there instead (plus the mirror copy).
+(function () {
+  var origDownloadBackupSilent = (typeof downloadBackupSilent === 'function') ? downloadBackupSilent : function (name, content) { /* noop */ };
+  window['downloadBackupSilent'] = function (name, content) {
+    var a = _vapp();
+    if (a && a.saveFile && _hourlyExportPath) {
+      a.saveFile(_hourlyExportPath, name, content).then(function (r) {
+        if (r && r.ok) console.log('Auto-backup written to export folder: ' + name);
+        else console.error('Auto-backup file write failed:', r && r.error);
+      });
+      _mirrorBackupFile(name, content);
+      return;
+    }
+    return origDownloadBackupSilent(name, content);
+  };
+})();
+
+// Choose the "second folder" that receives a copy of every backup file.
+function pickBackupMirrorFolder() {
+  var a = _vapp();
+  if (!a || !a.pickFolder) {
+    showToast(t('hourlyExportUnavailable') || 'Cette option est disponible uniquement dans la version bureau (exe).', 'warning');
+    return Promise.resolve(null);
+  }
+  return a.pickFolder().then(function (result) {
+    if (result && result.path) {
+      settings.backupMirrorPath = result.path;
+      dbPut('settings', { key: 'backupMirrorPath', value: result.path }).catch(function () {});
+      showToast(t('backupMirrorSelected', { path: result.path }), 'success');
+      if (typeof updateBackupMirrorUI === 'function') updateBackupMirrorUI();
+      if (typeof refreshDriveWarnings === 'function') refreshDriveWarnings();
+      return result;
+    }
+    return null;
+  });
+}
+function clearBackupMirror() {
+  settings.backupMirrorPath = '';
+  dbPut('settings', { key: 'backupMirrorPath', value: '' }).catch(function () {});
+  showToast(t('backupMirrorCleared') || 'Dossier secondaire de sauvegarde retiré.', 'info');
+  if (typeof updateBackupMirrorUI === 'function') updateBackupMirrorUI();
+  if (typeof refreshDriveWarnings === 'function') refreshDriveWarnings();
+}
+function updateBackupMirrorUI() {
+  var el = document.getElementById('backup-mirror-path-display');
+  if (!el) return;
+  var mp = (settings && settings.backupMirrorPath) || '';
+  el.textContent = mp || (t('backupMirrorNone') || 'Non configuré');
+  if (typeof updateBackupDestDisplay === 'function') updateBackupDestDisplay();
+}
+
+// "Emplacement des sauvegardes" in the Sauvegarde Automatique card: on the
+// installed desktop app auto-backups become real files in the export folder
+// (mirror as extra copy); everywhere else they are downloads.
+function updateBackupDestDisplay() {
+  var el = document.getElementById('backup-dest-display');
+  if (!el) return;
+  var p = (settings && settings.hourlyExportPath) || '';
+  if (!p && settings && settings.backupMirrorPath) p = settings.backupMirrorPath;
+  var a = (typeof _vapp === 'function') ? _vapp() : null;
+  el.textContent = p || (a ? (t('backupDestDefault') || 'Dossier par défaut (Téléchargements)') : (t('backupDestBrowser') || 'Téléchargements (navigateur)'));
+}
+
+// Same-drive warnings: backups stored on the SAME drive as the data or the
+// mirror on the same drive as the primary folder add no real disaster recovery.
+function refreshDriveWarnings() {
+  var a = _vapp();
+  if (!a) return;
+  var el = document.getElementById('drive-warning-text');
+  if (!el) return;
+  var ep = (settings && settings.hourlyExportPath) || '';
+  var mp = (settings && settings.backupMirrorPath) || '';
+  var getDP = a.getDataPath ? a.getDataPath() : Promise.resolve(null);
+  return getDP.then(function (d) {
+    var dataPath = d && d.path ? d.path : '';
+    if (!dataPath) { el.style.display = 'none'; return; }
+    var warns = [];
+    var jobs = [];
+    function addPair(label, pa, pb) {
+      if (!pa || !pb || pa === pb) return;
+      jobs.push(a.sameDrive ? a.sameDrive(pa, pb).then(function (same) { if (same) warns.push(label); }) : Promise.resolve());
+    }
+    addPair(t('driveSameData'), ep, dataPath);
+    addPair(t('driveSameDataMirror'), mp, dataPath);
+    addPair(t('driveSameDisk'), ep, mp);
+    return Promise.all(jobs).then(function () {
+      if (warns.length) { el.style.display = 'block'; el.textContent = t('driveWarnTitle') + ' ' + warns.join(' — '); }
+      else { el.style.display = 'none'; }
+    });
+  }).catch(function () { if (el) el.style.display = 'none'; });
+}
+window['pickBackupMirrorFolder'] = pickBackupMirrorFolder;
+window['clearBackupMirror'] = clearBackupMirror;
+window['updateBackupMirrorUI'] = updateBackupMirrorUI;
+window['refreshDriveWarnings'] = refreshDriveWarnings;

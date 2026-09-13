@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld('vollarApp', {
 
     // Open the app's user-data folder in the OS file manager.
     openDataFolder: () => ipcRenderer.invoke('open-data-folder'),
+    // The user-data path itself (no side effects).
+    getDataPath: () => ipcRenderer.invoke('get-data-path'),
 
     // Pick a folder for hourly exports (shows native OS dialog).
     pickFolder: () => ipcRenderer.invoke('pick-folder'),
@@ -32,6 +34,11 @@ contextBridge.exposeInMainWorld('vollarApp', {
     // Get the user's Desktop path for fallback saves.
     getDesktopPath: () => ipcRenderer.invoke('get-desktop-path'),
 
+    // Crash recovery: true when the previous run did not quit cleanly.
+    getCrashFlag: () => ipcRenderer.invoke('get-crash-flag'),
+    // Whether two paths are on the same drive/volume (backup safety warning).
+    sameDrive: (pathA, pathB) => ipcRenderer.invoke('same-drive', pathA, pathB),
+
     // --- Quit lifecycle (shutdown backup) ---
     // Listen for a quit signal from the main process.
     onAppQuit: (callback) => {
@@ -43,6 +50,8 @@ contextBridge.exposeInMainWorld('vollarApp', {
     // --- Auto-update ---
     // Tell the main process whether auto-update is enabled (Mises à jour auto).
     setUpdateEnabled: (enabled) => ipcRenderer.invoke('update-prefs', !!enabled),
+    // Per-install update source: master switch + GitHub owner/repo (Settings > Système).
+    setUpdateSource: (cfg) => ipcRenderer.invoke('update-source', cfg || {}),
     // Force a check for updates now (Settings > Système).
     checkForUpdates: () => ipcRenderer.invoke('update-check'),
     // Install the downloaded update (restart).

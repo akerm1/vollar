@@ -44,7 +44,7 @@
     <div id="lock-screen" class="lock-screen">
         <div class="lock-content">
             <h2 style="margin-bottom:4px;" data-i18n="appName">🧵 Vollar</h2>
-            <p id="lock-subtitle" style="margin-bottom:24px;color:rgba(255,255,255,0.7);" data-i18n="lockTitle">Sélectionnez votre profil</p>
+            <p id="lock-subtitle" style="margin-bottom:24px;color:rgba(255,255,255,0.7);"   data-i18n="lockTitle">Sélectionnez votre profil</p>
             <div id="user-grid" class="user-grid"></div>
             <div id="pin-input-section" style="display:none;">
                 <p id="selected-user-name" style="font-size:18px;font-weight:600;margin-bottom:12px;"></p>
@@ -1661,7 +1661,7 @@
                                 <div class="panel-badge">💾</div>
                                 <div>
                                     <h2>Sauvegarde</h2>
-                                    <p>Automatisation, restauration et zone de danger</p>
+                                    <p data-i18n="backupPanelSubtitle">Sauvegarde automatique, export horaire, copie de sûreté, restauration</p>
                                 </div>
                             </div>
 
@@ -1675,8 +1675,8 @@
                                  <div class="settings-card-body">
                                       <div class="settings-toggle-row">
                                           <div class="toggle-text">
-                                              <span class="toggle-name">Activer auto-backup</span>
-                                              <span class="toggle-desc">Sauvegarde automatique des données après chaque vente</span>
+                                              <span class="toggle-name" data-i18n="backupAutoToggle">Activer auto-backup</span>
+                                              <span class="toggle-desc" data-i18n="backupAutoDesc">Sauvegarde automatique des données après chaque vente</span>
                                           </div>
                                           <div class="toggle-buttons">
                                               <label class="toggle-label">
@@ -1685,47 +1685,17 @@
                                               </label>
                                           </div>
                                       </div>
-                                      <div class="settings-form-grid">
-                                          <div class="form-group">
-                                              <label for="settings-backup-interval">Intervalle</label>
-                                              <select id="settings-backup-interval">
-                                                  <option value="5">5 min</option>
-                                                  <option value="15">15 min</option>
-                                                  <option value="30" selected>30 min</option>
-                                                  <option value="60">1 heure</option>
-                                                  <option value="1440">Quotidien</option>
-                                              </select>
-                                          </div>
-                                          <div class="form-group">
-                                              <label for="settings-backup-retention">Rétention</label>
-                                              <select id="settings-backup-retention">
-                                                  <option value="7">7 jours</option>
-                                                  <option value="30" selected>30 jours</option>
-                                                  <option value="90">90 jours</option>
-                                                  <option value="365">1 an</option>
-                                              </select>
-                                          </div>
+                                      <div class="settings-info-row" style="font-size:12px;color:var(--muted,#888);margin-top:10px;">
+                                          <span data-i18n="backupDestLabel">Emplacement des sauvegardes</span> : <span id="backup-dest-display">—</span>
                                       </div>
                                       <div class="settings-toggle-row">
                                           <div class="toggle-text">
-                                              <span class="toggle-name">Cloud (Google Drive)</span>
-                                              <span class="toggle-desc">Synchronise les sauvegardes vers Google Drive pour un accès externe</span>
+                                              <span class="toggle-name" data-i18n="cloudToggleName">Sauvegarde vers un dossier (navigateur)</span>
+                                              <span class="toggle-desc" data-i18n="cloudToggleDesc">Navigateur uniquement : enregistre les sauvegardes dans un dossier choisi. Non utilisé dans la version installée (voir Export horaire).</span>
                                           </div>
                                           <div class="toggle-buttons">
                                               <label class="toggle-label">
                                                   <input type="checkbox" data-setting="cloudBackupEnabled" onchange="setToggle('cloudBackupEnabled', this.checked)">
-                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                                              </label>
-                                          </div>
-                                      </div>
-                                      <div class="settings-toggle-row">
-                                          <div class="toggle-text">
-                                              <span class="toggle-name">Mises à jour auto</span>
-                                              <span class="toggle-desc">Installe automatiquement les mises à jour du système</span>
-                                          </div>
-                                          <div class="toggle-buttons">
-                                              <label class="toggle-label">
-                                                  <input type="checkbox" data-setting="autoUpdateEnabled" onchange="setToggle('autoUpdateEnabled', this.checked)">
                                                   <span class="toggle-track"><span class="toggle-thumb"></span></span>
                                               </label>
                                           </div>
@@ -1737,7 +1707,7 @@
                                 <div class="settings-card-head">
                                     <div class="settings-card-title">
                                         <span class="settings-card-badge">🕐</span>
-                                        Export Automatique Horaire
+                                        <span data-i18n="hourlyExportCardTitle">Export Automatique & Copie de sûreté</span>
                                     </div>
                                 </div>
                                 <div class="settings-card-body">
@@ -1762,6 +1732,17 @@
                                             <button type="button" class="btn btn-primary btn-sm" onclick="pickHourlyExportFolder()" data-i18n="hourlyExportPickFolderBtn">📁 Choisir le dossier d'export</button>
                                         </div>
                                     </div>
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="backupMirror">Dossier secondaire (copie de sûreté)</span>
+                                            <span class="toggle-desc" id="backup-mirror-path-display" data-i18n="backupMirrorNone">Non configuré</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="pickBackupMirrorFolder()" data-i18n="backupMirrorPickBtn">📁 Choisir</button>
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick="clearBackupMirror()" data-i18n="backupMirrorClearBtn">Retirer</button>
+                                        </div>
+                                    </div>
+                                    <div id="drive-warning-text" style="display:none;font-size:12px;color:#e74c3c;margin-top:10px;padding:8px;background:rgba(231,76,60,.12);border-radius:6px;"></div>
                                     <div class="settings-form-grid">
                                         <div class="form-group">
                                             <label for="settings-hourly-export-interval" data-i18n="hourlyExportInterval">Intervalle (min)</label>
@@ -1795,7 +1776,7 @@
                                 <div class="settings-card-head">
                                     <div class="settings-card-title">
                                         <span class="settings-card-badge">📤</span>
-                                        Actions Manuelles
+                                        <span data-i18n="manualBackupCardTitle">Sauvegarde manuelle</span>
                                     </div>
                                 </div>
                                 <div class="settings-card-body">
@@ -1957,6 +1938,47 @@
                                     </div>
                                 </div>
                                 <div class="settings-card-body">
+                                    <div id="update-desktop-fields">
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name" data-i18n="updateMasterToggle">Activer les mises à jour pour ce poste</span>
+                                                <span class="toggle-desc" data-i18n="updateMasterDesc">Si désactivé, ce poste ne vérifie jamais les mises à jour.</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="updateCheckEnabled" onchange="setToggle('updateCheckEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div id="update-config-fields">
+                                        <div class="settings-toggle-row">
+                                            <div class="toggle-text">
+                                                <span class="toggle-name" data-i18n="updateAutoDownloadToggle">Téléchargement automatique</span>
+                                                <span class="toggle-desc" data-i18n="updateAutoDownloadDesc">Télécharge et installe automatiquement les mises à jour disponibles</span>
+                                            </div>
+                                            <div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="autoUpdateEnabled" onchange="setToggle('autoUpdateEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="settings-form-grid">
+                                            <div class="form-group">
+                                                <label for="settings-update-owner" data-i18n="updateSourceOwner">Propriétaire GitHub</label>
+                                                <input type="text" id="settings-update-owner" placeholder="owner">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="settings-update-repo" data-i18n="updateSourceRepo">Dépôt GitHub</label>
+                                                <input type="text" id="settings-update-repo" placeholder="repo">
+                                            </div>
+                                        </div>
+                                        <div class="btn-row" style="margin-top:10px;">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="btn-save-update-source" data-i18n="updateSourceSaveBtn">💾 Enregistrer la source</button>
+                                        </div>
+                                        </div>
+                                    </div>
                                     <div class="settings-toggle-row">
                                         <div class="toggle-text">
                                             <span class="toggle-name" data-i18n="updateStatusLabel">Statut des mises à jour</span>
