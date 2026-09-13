@@ -110,6 +110,21 @@
     items.forEach(function (it) { frag.appendChild(_brRow(it)); });
     list.innerHTML = '';
     list.appendChild(frag);
+    _brCap(list);
+  }
+
+  // Show at most 5 backups before the list scrolls. The cap height is the
+  // measured combined height of the first 5 rows, so exactly 5 stay visible no
+  // matter the row wrapping; falls back to a fixed value when the settings view
+  // is still hidden at first render (offsetHeight reads 0 then).
+  function _brCap(list) {
+    var rows = list.children;
+    if (!rows.length || rows.length <= 5) return;
+    var h = 0;
+    for (var i = 0; i < 5 && i < rows.length; i++) h += rows[i].offsetHeight;
+    if (!h) h = 260;
+    list.style.maxHeight = h + 'px';
+    list.style.overflowY = 'auto';
   }
 
   // Inject the panel INSIDE the native « Restauration & Import » settings card
