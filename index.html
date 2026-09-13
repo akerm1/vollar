@@ -1685,23 +1685,25 @@
                                               </label>
                                           </div>
                                       </div>
-                                      <div class="settings-info-row" style="font-size:12px;color:var(--muted,#888);margin-top:10px;">
-                                          <span data-i18n="backupDestLabel">Emplacement des sauvegardes</span> : <span id="backup-dest-display">—</span>
-                                      </div>
+<div class="settings-info-row" style="font-size:12px;color:var(--muted,#888);margin-top:10px;">
+                                        <span data-i18n="backupDestLabel">Emplacement des sauvegardes</span> : <span id="backup-dest-display">—</span>
+                                    </div>
+                                    <div class="settings-guide" data-i18n="backupGuideAuto">💡 Recommandé : laissez cette option activée. Après chaque vente ou modification, une copie de vos données est créée automatiquement dans le dossier d'export (ou sur le Bureau en dernier recours).</div>
                                       <div class="settings-toggle-row">
                                           <div class="toggle-text">
                                               <span class="toggle-name" data-i18n="cloudToggleName">Sauvegarde vers un dossier (navigateur)</span>
                                               <span class="toggle-desc" data-i18n="cloudToggleDesc">Navigateur uniquement : enregistre les sauvegardes dans un dossier choisi. Non utilisé dans la version installée (voir Export horaire).</span>
                                           </div>
-                                          <div class="toggle-buttons">
-                                              <label class="toggle-label">
-                                                  <input type="checkbox" data-setting="cloudBackupEnabled" onchange="setToggle('cloudBackupEnabled', this.checked)">
-                                                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                                              </label>
-                                          </div>
-                                      </div>
-                                  </div>
-                             </div>
+<div class="toggle-buttons">
+                                                <label class="toggle-label">
+                                                    <input type="checkbox" data-setting="cloudBackupEnabled" onchange="setToggle('cloudBackupEnabled', this.checked)">
+                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="settings-guide" data-i18n="backupGuideCloud">💡 Navigateur uniquement. Dans la version installée, les sauvegardes sont écrites par l'« Export horaire » ci-dessous — ce réglage n'a pas d'effet sur le poste installé.</div>
+                                    </div>
+                                 </div>
 
                             <div class="settings-card">
                                 <div class="settings-card-head">
@@ -1723,6 +1725,7 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideHourly">💡 L'export horaire écrit un fichier export_AAAA-MM-JJ_HH-MM.json à l'intervalle choisi. Ces fichiers contiennent toute la base : produits, ventes, clients et réglages.</div>
                                     <div class="settings-toggle-row">
                                         <div class="toggle-text">
                                             <span class="toggle-name" data-i18n="hourlyExportFolder">Dossier d'export</span>
@@ -1732,6 +1735,7 @@
                                             <button type="button" class="btn btn-primary btn-sm" onclick="pickHourlyExportFolder()" data-i18n="hourlyExportPickFolderBtn">📁 Choisir le dossier d'export</button>
                                         </div>
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideFolder">💡 Dossier principal : toutes les sauvegardes et exports y sont écrits. Choisissez un emplacement stable pour retrouver vos données même si le poste doit être réinstallé.</div>
                                     <div class="settings-toggle-row">
                                         <div class="toggle-text">
                                             <span class="toggle-name" data-i18n="backupMirror">Dossier secondaire (copie de sûreté)</span>
@@ -1742,6 +1746,7 @@
                                             <button type="button" class="btn btn-secondary btn-sm" onclick="clearBackupMirror()" data-i18n="backupMirrorClearBtn">Retirer</button>
                                         </div>
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideMirror">💡 Copie de sûreté : une seconde copie de chaque sauvegarde est écrite dans ce dossier supplémentaire (clé USB, second disque). Protège contre la perte du disque principal.</div>
                                     <div id="drive-warning-text" style="display:none;font-size:12px;color:#e74c3c;margin-top:10px;padding:8px;background:rgba(231,76,60,.12);border-radius:6px;"></div>
                                     <div class="settings-form-grid">
                                         <div class="form-group">
@@ -1766,6 +1771,7 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideRetention">💡 Intervalle : fréquence des exports. Rétention : nombre de jours de fichiers conservés — les plus anciens sont supprimés automatiquement pour ne pas saturer le disque.</div>
                                     <div class="settings-info-row" id="hourly-export-status" style="font-size:12px;color:var(--muted,#888);margin-top:10px;">
                                         <span data-i18n="hourlyExportStatusOff">Export horaire DÉSACTIVÉ</span>
                                     </div>
@@ -1784,6 +1790,7 @@
                                         <button class="btn btn-success" onclick="manualBackup()">💾 Télécharger</button>
                                         <button class="btn btn-primary" id="btn-export-full-backup">💾 Sauvegarde complète</button>
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideManual">💡 Faites une sauvegarde manuelle avant une opération importante. « Télécharger » enregistre un fichier .json immédiatement ; « Sauvegarde complète » crée un fichier de sauvegarde complet.</div>
                                 </div>
                             </div>
 
@@ -1799,6 +1806,7 @@
                                         <label for="file-import-full">Restaurer sauvegarde (.json)</label>
                                         <input type="file" id="file-import-full" accept=".json" class="file-input">
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideRestore">💡 Restaurer remplace les données actuelles par celles du fichier choisi. La liste « Sauvegardes détectées » (ci-dessous) restaure en un clic, avec validation et annulation automatique en cas d'erreur.</div>
                                 </div>
                             </div>
 
@@ -1815,6 +1823,7 @@
                                         <button class="btn btn-danger" id="btn-reset-all">⚠️ Tout réinitialiser</button>
                                         <button class="btn btn-danger" id="btn-clear-sales">🗑️ Effacer ventes</button>
                                     </div>
+                                    <div class="settings-guide" data-i18n="backupGuideDanger">⚠️ Actions irréversibles : les données supprimées sont perdues définitivement. Faites d'abord une sauvegarde manuelle avant d'utiliser ces boutons.</div>
                                 </div>
                             </div>
                         </section>
