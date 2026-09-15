@@ -17,7 +17,7 @@ const { autoUpdater } = require('electron-updater');
 const IS_PORTABLE = !!process.env.PORTABLE_EXECUTABLE_DIR;
 
 let mainWindow = null;
-let _quitPending = false;      // true when will-quit is firing
+let _quitPending = false;      // a window close is being handled (shutdown backup running)
 let _rendererReady = false;    // set when renderer signals quitReady
 let _updateEnabled = true;     // renderer-driven pref (Mises à jour auto)
 let _updatesEnabled = true;    // per-install master switch (Activer les mises à jour)
@@ -114,6 +114,40 @@ function createWindow() {
 
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
+    });
+
+    // Shutdown backup handshake. Hooked on 'close' (fires BEFORE the window is
+    // destroyed, so the renderer is still alive) — 'will-quit' fires only after
+    // all windows are gone (mainWindow null), so a backup there can never work.
+    mainWindow.on('close', (event) => {
+        // Update restart: quitAndInstall closes the window itself — let it.
+        if (_updateInstalling) return;
+        if (_quitPending || !mainWindow || !mainWindow.webContents || mainWindow.webContents.isDestroyed()) return;
+        event.preventDefault();
+        _quitPending = true;
+
+        const FORCE_QUIT_MS = 6000;
+        const timer = setTimeout(() => {
+            // Renderer didn't respond in time — force quit (installing first).
+            _quitPending = false;
+            if (!installPendingUpdate()) app.exit(0);
+        }, FORCE_QUIT_MS);
+
+        ipcMain.once('renderer-quit-ready', () => {
+            clearTimeout(timer);
+            _quitPending = false;
+            _clearCrashMarker(); // clean quit confirmed -> next launch sees no crash flag
+            if (!installPendingUpdate()) app.exit(0);
+        });
+
+        try {
+            // Signal the renderer to build and save the shutdown backup.
+            mainWindow.webContents.send('app-quit');
+        } catch (err) {
+            clearTimeout(timer);
+            _quitPending = false;
+            app.exit(0);
+        }
     });
 
     mainWindow.on('closed', () => {
@@ -386,31 +420,10 @@ ipcMain.handle('same-drive', async (event, a, b) => {
     }
 });
 
-// === Shutdown backup (will-quit handler) ===
-// When the user closes the app, we signal the renderer to run a final backup,
-// wait up to 2 seconds for it to respond, then force-quit.
-app.on('will-quit', (event) => {
-    if (_quitPending || !mainWindow) return;
-    event.preventDefault();
-    _quitPending = true;
-
-    const FORCE_QUIT_MS = 2500;
-    const timer = setTimeout(() => {
-        // Renderer didn't respond in time — force quit (installing first).
-        _quitPending = false;
-        if (!installPendingUpdate()) app.exit(0);
-    }, FORCE_QUIT_MS);
-
-    ipcMain.once('renderer-quit-ready', () => {
-        clearTimeout(timer);
-        _quitPending = false;
-        _clearCrashMarker(); // clean quit confirmed -> next launch sees no crash flag
-        if (!installPendingUpdate()) app.exit(0);
-    });
-
-    // Signal the renderer to build and save the shutdown backup.
-    mainWindow.webContents.send('app-quit');
-});
+// === Shutdown backup (window 'close' handler in createWindow) ===
+// NOTE: the handshake now lives on the BrowserWindow 'close' event (see
+// createWindow). A will-quit handler cannot work: the window is already
+// destroyed by the time will-quit fires, so the renderer is unreachable.
 
 app.whenReady().then(() => {
     // Detect an abnormal shutdown from the PREVIOUS run (crash / power loss /
