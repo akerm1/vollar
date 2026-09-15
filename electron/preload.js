@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('vollarApp', {
 
     // Get the user's Desktop path for fallback saves.
     getDesktopPath: () => ipcRenderer.invoke('get-desktop-path'),
+    // Get the OS Downloads path (used to prune fallback backup files).
+    getDownloadsPath: () => ipcRenderer.invoke('get-downloads-path'),
 
     // Get/create the dedicated "Données du POS auto" folder on the Desktop
     // (used for shutdown backups).

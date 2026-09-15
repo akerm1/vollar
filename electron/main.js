@@ -271,6 +271,12 @@ ipcMain.handle('get-desktop-path', async () => {
     return { path: app.getPath('desktop') };
 });
 
+// Downloads path (used to prune accumulated backup files in the OS Downloads
+// folder when no dedicated export folder is configured).
+ipcMain.handle('get-downloads-path', async () => {
+    return { path: app.getPath('downloads') };
+});
+
 // Dedicated shutdown-backup folder on the Desktop ("Données du POS auto"),
 // auto-created on every launch if missing. Skips the portable/read-only edge
 // cases gracefully: if the folder cannot be created, returns the raw Desktop.
