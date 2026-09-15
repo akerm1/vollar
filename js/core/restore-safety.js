@@ -76,6 +76,7 @@
         showToast(t('invalidBackupFormat'), 'error');
         return false;
       }
+      if (typeof window.forceAutoBackupNext === 'function') window.forceAutoBackupNext();
       if (typeof window.createAutoBackup === 'function') await window.createAutoBackup();
 
       if (typeof IMPORT_STORES === 'undefined') {

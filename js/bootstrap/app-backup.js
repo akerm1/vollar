@@ -244,7 +244,13 @@ function _mirrorBackupFile(name, content) {
           console.log('Auto-backup written to folder: ' + name);
           if (_autoBackupPath) cleanupAutoBackups();
           else cleanupHourlyBackups();
-        } else console.error('Auto-backup file write failed:', r && r.error);
+        } else {
+          console.error('Auto-backup file write failed:', r && r.error);
+          // Re-arm the throttle on a confirmed write failure so the next
+          // trigger retries instead of being throttled for the full 60s.
+          _lastAutoBackupMs = 0;
+          if (r && r.error) showToast(t('autoBackupWriteFailed', { error: r.error }), 'error');
+        }
       });
       _mirrorBackupFile(name, content);
       return;
@@ -411,7 +417,6 @@ window['updateShutdownDestDisplay'] = updateShutdownDestDisplay;
       }
       setTimeout(function () {
         pruneAuditLog();
-        cleanupDownloadsBackups();
       }, 1500);
     }
     if (retention === 30 && settings && settings.hourlyExportRetention === 60) retention = 60;
@@ -421,9 +426,12 @@ window['updateShutdownDestDisplay'] = updateShutdownDestDisplay;
 
 // Throttle automatic full-snapshot backups to one per 60s (per-sale backups
 // firing on every transaction would flood the export folder / Downloads).
-// Manual backups bypass the throttle (the user explicitly asked for one).
+// Manual backups bypass the throttle (the user explicitly asked for one), and
+// safety-critical paths (restoring a backup) force the next snapshot through
+// via forceAutoBackupNext().
 (function () {
   var forceNext = false;
+  window['forceAutoBackupNext'] = function () { forceNext = true; };
   var origManual = window['manualBackup'];
   if (typeof origManual === 'function') {
     window['manualBackup'] = function () {
@@ -443,12 +451,38 @@ window['updateShutdownDestDisplay'] = updateShutdownDestDisplay;
   var origAuto = window['createAutoBackup'];
   window['createAutoBackup'] = function () {
     var now = Date.now();
-    if (!forceNext && now - _lastAutoBackupMs < _autoBackupMinGapMs) {
+    var bypass = forceNext;
+    forceNext = false;
+    if (!bypass && now - _lastAutoBackupMs < _autoBackupMinGapMs) {
       console.log('Auto-backup throttled (<60s since last snapshot): skipped');
       return Promise.resolve();
     }
+    // Do not stamp while auto-backup is disabled: re-enabling within 60s must
+    // not see the first snapshot throttled away.
+    if (!bypass && window['autoBackupEnabled'] === false) {
+      console.log('Auto-backup disabled: not stamped');
+      return Promise.resolve();
+    }
+    // Stamp BEFORE starting to enforce the 60s floor; a confirmed failed folder
+    // write (downloadBackupSilent) resets it so the next trigger retries.
     _lastAutoBackupMs = now;
-    if (typeof origAuto === 'function') return origAuto.apply(this, arguments);
-    return Promise.resolve();
+    if (typeof origAuto !== 'function') return Promise.resolve();
+    var p;
+    try {
+      p = origAuto.apply(this, arguments);
+    } catch (e) {
+      console.error('Auto-backup failed:', e);
+      _lastAutoBackupMs = 0;
+      return Promise.reject(e);
+    }
+    if (!p || typeof p.then !== 'function') p = Promise.resolve();
+    return p.then(
+      function (r) { return r; },
+      function (e) {
+        console.error('Auto-backup failed:', e);
+        _lastAutoBackupMs = 0;
+        throw e;
+      }
+    );
   };
 })();
