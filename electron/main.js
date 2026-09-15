@@ -237,6 +237,21 @@ ipcMain.handle('get-desktop-path', async () => {
     return { path: app.getPath('desktop') };
 });
 
+// Dedicated shutdown-backup folder on the Desktop ("Données du POS auto"),
+// auto-created on every launch if missing. Skips the portable/read-only edge
+// cases gracefully: if the folder cannot be created, returns the raw Desktop.
+ipcMain.handle('get-auto-backup-folder', async () => {
+    const desktop = app.getPath('desktop');
+    const dir = path.join(desktop, 'Données du POS auto');
+    try {
+        await fs.promises.mkdir(dir, { recursive: true });
+        return { path: dir };
+    } catch (err) {
+        console.error('get-auto-backup-folder error:', err);
+        return { path: desktop };
+    }
+});
+
 // === Auto-update (electron-updater) ===
 // The renderer controls the "Mises à jour auto" preference and can force a
 // check from the Settings > Système panel. All events are forwarded to the

@@ -35,6 +35,10 @@
     if (folder && app.listFiles) {
       try { var r = await app.listFiles(folder); add(folder, r && r.files, false); } catch (e) { /* dossier illisible */ }
     }
+    var autoFolder = (settings && settings.autoBackupPath) || '';
+    if (autoFolder && autoFolder !== folder && app.listFiles) {
+      try { var ra = await app.listFiles(autoFolder); add(autoFolder, ra && ra.files, false); } catch (e) { /* dossier illisible */ }
+    }
     if (app.getDesktopPath && app.listFiles) {
       try {
         var d = await app.getDesktopPath();

@@ -14,12 +14,14 @@
     var FILL_KEY = 'samtex_action_buttons_fill';
     var QUICKCOLOR_KEY = 'samtex_quickbox_colors';
 
-    // Cibles police/taille
+    // Cibles police/taille/couleur
     var TARGETS = [
         { id: 'cart', key: 'samtex_cart_name_prefs', def: 16, label: 'Style du nom de produit',
           sel: '#cart-table-body td:first-child, #quick-cart-table-body td:first-child' },
         { id: 'fastTotal', key: 'samtex_fast_total_prefs', def: 16, label: 'Style du prix (clients)',
-          sel: '.fast-client-card .fast-card-total' }
+          sel: '.fast-client-card .fast-card-total' },
+        { id: 'subtotal', key: 'samtex_subtotal_prefs', def: 15, label: 'Style du prix (sous-total)',
+          sel: '#cart-table-body td:nth-child(7), #quick-cart-table-body td:nth-child(7)' }
     ];
 
     var FONTS = [
@@ -45,11 +47,12 @@
             for (var i = 0; i < TARGETS.length; i++) {
                 var t = TARGETS[i];
                 var raw = localStorage.getItem(t.key);
-                var v = { font: '', size: t.def };
+                var v = { font: '', size: t.def, color: '' };
                 if (raw) {
                     var p = JSON.parse(raw);
                     if (typeof p.font === 'string') v.font = p.font;
                     if (typeof p.size === 'number' && p.size > 0) v.size = p.size;
+                    if (typeof p.color === 'string') v.color = p.color;
                 }
                 fontPrefs[t.id] = v;
             }
@@ -92,9 +95,10 @@
 
         for (var i = 0; i < TARGETS.length; i++) {
             var t = TARGETS[i];
-            var p = fontPrefs[t.id] || { font: '', size: t.def };
+            var p = fontPrefs[t.id] || { font: '', size: t.def, color: '' };
             var family = p.font ? ('font-family:' + p.font + '; ') : '';
-            rules.push(t.sel + '{font-size:' + p.size + 'px; ' + family + '}');
+            var colorRule = p.color ? ('color:' + p.color + ' !important; ') : '';
+            rules.push(t.sel + '{font-size:' + p.size + 'px; ' + family + colorRule + '}');
         }
 
         var keys = Object.keys(quickColors);
@@ -178,7 +182,7 @@
     // ===== Menu police/taille =====
     function openFontMenu(target) {
         var menu = baseMenu(target.label);
-        var p = fontPrefs[target.id] || { font: '', size: target.def };
+        var p = fontPrefs[target.id] || { font: '', size: target.def, color: '' };
 
         menu.appendChild(labelDiv('Police'));
         FONTS.forEach(function (f) {
@@ -215,12 +219,35 @@
         });
         menu.appendChild(sizeWrap);
 
+        menu.appendChild(labelDiv('Couleur'));
+        var colorWrap = document.createElement('div');
+        colorWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+        var addColor = function (color, active) {
+            var cb = styleBtn('', 'width:28px;height:28px;border-radius:6px;cursor:pointer;border:2px solid ' +
+                (active ? '#1a1a2e' : '#dddddd') + ';padding:0;');
+            cb.style.background = color || '#ffffff';
+            cb.title = color || 'Défaut';
+            if (!color) cb.textContent = '↺';
+            cb.addEventListener('click', function () {
+                p.color = color || '';
+                savePrefs();
+                applyAll();
+                closeMenu();
+                if (typeof showToast === 'function') showToast(color ? 'Couleur appliquée' : 'Couleur par défaut', 'info');
+            });
+            colorWrap.appendChild(cb);
+        };
+        addColor('', !p.color);
+        for (var ci = 0; ci < PALETTE.length; ci++) addColor(PALETTE[ci], p.color === PALETTE[ci]);
+        menu.appendChild(colorWrap);
+
         var reset = styleBtn('↺ ' + (typeof t === 'function' ? (t('btnContextReset') || 'Réinitialiser') : 'Réinitialiser'),
             'display:block;width:100%;margin-top:8px;padding:6px;border:1px solid #eeeeee;border-radius:6px;' +
             'background:#fafafa;cursor:pointer;font-size:13px;color:#c0392b;');
         reset.addEventListener('click', function () {
             p.font = '';
             p.size = target.def;
+            p.color = '';
             savePrefs();
             applyAll();
             closeMenu();
@@ -327,6 +354,11 @@
         return el.closest('.quick-box[data-index]');
     }
 
+    function subtotalTd(el) {
+        if (!el || !el.closest) return null;
+        return el.closest('#cart-table-body td:nth-child(7), #quick-cart-table-body td:nth-child(7)');
+    }
+
     function actionBtnEl(el) {
         if (!el || !el.closest) return null;
         return el.closest('.checkout-action-bar-side .action-buttons button');
@@ -361,12 +393,15 @@
 
     // Bulle : police/taille pour paniers + prix clients (sinon menu natif)
     function onCtxBubble(e) {
-        var el = nameTd(e.target) || fastTotalEl(e.target);
+        var el = nameTd(e.target) || fastTotalEl(e.target) || subtotalTd(e.target);
         if (!el) return;
         e.preventDefault();
         lastX = e.clientX;
         lastY = e.clientY;
-        var target = nameTd(e.target) ? TARGETS[0] : TARGETS[1];
+        var target;
+        if (nameTd(e.target)) target = TARGETS[0];
+        else if (fastTotalEl(e.target)) target = TARGETS[1];
+        else target = TARGETS[2];
         openFontMenu(target);
     }
 
@@ -410,10 +445,19 @@
 
     window['initCartNameStyle'] = initAll;
     window['setCartNameStyle'] = function (font, size) {
-        var p = fontPrefs.cart || { font: '', size: 16 };
+        var p = fontPrefs.cart || { font: '', size: 16, color: '' };
         p.font = font || '';
         p.size = (typeof size === 'number' && size > 0) ? size : 16;
         fontPrefs.cart = p;
+        savePrefs();
+        applyAll();
+    };
+    window['setSubtotalStyle'] = function (font, size, color) {
+        var p = fontPrefs.subtotal || { font: '', size: 15, color: '' };
+        p.font = font || '';
+        p.size = (typeof size === 'number' && size > 0) ? size : 15;
+        p.color = color || '';
+        fontPrefs.subtotal = p;
         savePrefs();
         applyAll();
     };

@@ -310,3 +310,11 @@ body.dark-mode .settings-nav,
 body.dark-mode .settings-nav-item { background: #222328 !important; border-color: #3a3b40 !important; }
 body.dark-mode .settings-nav-item { color: #cfcfd4 !important; }
 body.dark-mode .settings-nav-item.active { background: #33343a !important; color: #fff !important; }
+#view-checkout { margin: -10px -20px; height: calc(100vh - 56px); }
+#view-checkout .checkout-left,
+#view-checkout .checkout-right { border-radius: 0; }
+#view-checkout .checkout-main-layout { gap: 0; }
+#view-checkout .checkout-cart-split { padding: 4px 8px 6px; }
+.quick-boxes-row { max-height: 110px; grid-auto-rows: 40px; }
+.quick-box { min-height: 0; height: 40px; }
+#view-checkout .checkout-top-total-value { font-size: 34px; }

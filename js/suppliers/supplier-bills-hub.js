@@ -362,6 +362,7 @@ function _hubItemsHtml(_bill, _q) {
       '<span>' + escapeHtml(_it.name || '—') + '</span>' +
       '<span>' + (_it.qty || 0) + '</span>' +
       '<span>' + formatPrice(_it.purchasePrice || 0) + ' DA</span>' +
+      '<span>' + formatPrice((_it.qty || 0) * (_it.purchasePrice || 0)) + ' DA</span>' +
       '<span class="hub-item-actions">' +
         '<button class="expense-btn expense-btn--ghost sd-edit-btn" onclick="openSupplierReceptionEdit(' + _supId + ',' + _bill.id + ',' + _idx + ',\'' + _bc + '\',' + (_it.qty || 0) + ',' + (_it.purchasePrice || 0) + ')" title="' + escapeHtml(t('editProductAction')) + '">' + escapeHtml(t('hubItemEdit')) + '</button>' +
         '<button class="expense-btn expense-btn--ghost sd-move-btn" onclick="hubTransferItem(' + _bill.id + ',' + _idx + ')" title="' + escapeHtml(t('supplierTransferItem')) + '">' + escapeHtml(t('hubItemMove')) + '</button>' +
@@ -378,6 +379,7 @@ function _hubItemsHtml(_bill, _q) {
       '<span>' + escapeHtml(t('tableNom')) + '</span>' +
       '<span>' + escapeHtml(t('tableQuantity')) + '</span>' +
       '<span>' + escapeHtml(t('tablePurchasePrice')) + '</span>' +
+      '<span>' + escapeHtml(t('tableLineAmount')) + '</span>' +
       '<span></span>' +
     '</div>' +
     _rows.join('') +

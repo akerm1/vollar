@@ -772,6 +772,7 @@ body.structure-alternative.structure-collapsed #current-user-name { display: non
 .hub-bill-count { color: #4b5563; font-size: 12px; font-weight: 600; background: #ececec; padding: 2px 8px; border-radius: 10px; }
 .hub-bill-total { font-weight: 700; color: var(--primary); font-size: 13px; }
 .hub-bill-body { padding: 8px 12px 12px 12px; border-top: 1px dashed #e3e3e3; }
+.hub-bill-body .sd-table-row { grid-template-columns: 0.9fr 1.2fr 0.6fr 0.6fr 0.9fr 0.36fr; }
 .hub-bill-body--closed { display: none; }
 .hub-bill-body--open { display: block; }
 .hub-bill-search-row { margin-bottom: 8px; }
@@ -793,7 +794,7 @@ body.structure-alternative.structure-collapsed #current-user-name { display: non
 
 /* --- Supplier bill popup (liste produits d'une facture) --- */
 .bill-popup-modal { max-width: 820px; max-height: 92vh; }
-.bill-popup-items .sd-table-row { grid-template-columns: 0.9fr 1.2fr 0.6fr 0.6fr 1.1fr; }
+.bill-popup-items .sd-table-row { grid-template-columns: 0.9fr 1.2fr 0.6fr 0.6fr 0.9fr 1.1fr; }
 .bill-popup-meta { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 10px 20px; border-bottom: 1px solid #f0e0e6; font-size: 13px; }
 .bill-popup-meta .hub-bill-total { font-size: 14px; color: var(--primary); }
 .hub-open-bill { background: #eef6ff; white-space: nowrap; }

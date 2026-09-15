@@ -253,10 +253,6 @@
                 <!-- SECTION 5.2: SPLIT CART VIEW -->
                 <div class="checkout-cart-split">
                     <div class="cart-split-panel main-panel">
-                        <div class="cart-panel-header">
-                            <h4 data-i18n="mainCart">🛒 Panier principal</h4>
-                            <span id="main-cart-total" class="cart-panel-total">0.00 DA</span>
-                        </div>
                         <div class="table-wrap">
                             <table>
                                 <thead>
@@ -283,7 +279,6 @@
                     <div class="cart-split-panel quick-panel">
                         <div class="cart-panel-header">
                             <h4 data-i18n="quickClient">⚡ Client rapide</h4>
-                            <span id="quick-cart-total" class="cart-panel-total">0.00 DA</span>
                         </div>
                         <div class="table-wrap">
                             <table>
@@ -313,7 +308,6 @@
                 <div class="quick-boxes-wrap" id="quick-boxes-wrap">
                     <div class="quick-boxes-header">
                         <span class="quick-boxes-title" data-i18n="quickProducts">🛍️ Produits rapides</span>
-                        <button type="button" id="btn-quick-boxes-layer" class="quick-boxes-layer-btn" title="">1 ⇄ 2</button>
                     </div>
                     <div class="quick-boxes-row" id="quick-boxes-row"></div>
                 </div>
@@ -321,6 +315,11 @@
 
                 <!-- SECTION 5.3: CHECKOUT RIGHT - CONTENU SÉPARÉ, SANS SCROLL -->
                 <div class="checkout-right fast-checkout-right">
+                    <!-- BLOC: TOTAL EN HAUT DU PANNEAU DROIT -->
+                    <div class="checkout-top-total">
+                        <span class="checkout-top-total-label" data-i18n="total">Total</span>
+                        <span class="checkout-top-total-value" id="checkout-top-total">0.00 DA</span>
+                    </div>
                     <!-- BLOC: RÉSUMÉ DE LA TRANSACTION (legacy, masqué) -->
                     <div class="summary-block" id="block-summary" style="display:none;">
                         <div class="summary-block-title" data-i18n="transactionSummary">🧾 Résumé de la Transaction</div>
@@ -581,6 +580,12 @@
                                 </div>
                                 <div id="supplier-feedback" class="supplier-feedback"></div>
                             </form>
+                        </div>
+                        <div class="clean-card" style="margin-top:16px;">
+                            <div class="clean-card-title" data-i18n="lowStockPanelTitle">⚠️ Stock bas</div>
+                            <div id="low-stock-panel" style="max-height:280px;overflow-y:auto;">
+                                <div style="text-align:center;color:#999;padding:16px;">…</div>
+                            </div>
                         </div>
                     </div>
 
@@ -1231,8 +1236,8 @@
                                                    <span class="toggle-track"><span class="toggle-thumb"></span></span>
                                                </label>
                                            </div>
-                                       </div>
-                                       <div class="settings-toggle-row">
+</div>
+                                    <div class="settings-toggle-row">
                                            <div class="toggle-text">
                                                <span class="toggle-name" data-i18n="quickBoxesEnabled">Produits rapides (24 cases)</span>
                                                <span class="toggle-desc" data-i18n="quickBoxesEnabledDesc">Affiche une rangée de 24 produits rapides en tête de caisse. Cliquez sur une case vide (+) ou sur ✎ pour choisir un produit, ✕ pour la vider.</span>
@@ -1685,10 +1690,16 @@
                                               </label>
                                           </div>
                                       </div>
-                                      <div class="settings-info-row" style="font-size:12px;color:var(--muted,#888);margin-top:10px;">
-                                          <span data-i18n="backupDestLabel">Emplacement des sauvegardes</span> : <span id="backup-dest-display">—</span>
-                                      </div>
-                                      <div class="settings-guide" style="display:none;" data-i18n="backupGuideAuto">💡 Recommandé : laissez cette option activée. Après chaque vente ou modification, une copie de vos données est créée automatiquement dans le dossier d'export (ou sur le Bureau en dernier recours).</div>
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="backupDestLabel">Emplacement des sauvegardes</span>
+                                            <span class="toggle-desc" id="auto-backup-path-display">Non configuré</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <button type="button" class="btn btn-primary btn-sm" onclick="pickAutoBackupFolder()" data-i18n="autoBackupPickBtn">📁 Choisir le dossier</button>
+                                        </div>
+                                    </div>
+                                    <div class="settings-guide" style="display:none;" data-i18n="backupGuideAuto">💡 Recommandé : laissez cette option activée. Après chaque vente ou modification, une copie de vos données est créée automatiquement dans le dossier que vous choisissez ci-dessous.</div>
                                  </div>
                             </div>
 
@@ -1715,7 +1726,7 @@
                                     <div class="settings-toggle-row">
                                         <div class="toggle-text">
                                             <span class="toggle-name" data-i18n="hourlyExportFolder">Dossier d'export</span>
-                                            <span class="toggle-desc" id="hourly-export-path-display" data-i18n="hourlyExportFolderNone">Non configuré</span>
+                                            <span class="toggle-desc" id="hourly-export-path-display">Non configuré</span>
                                         </div>
                                         <div class="toggle-buttons">
                                             <button type="button" class="btn btn-primary btn-sm" onclick="pickHourlyExportFolder()" data-i18n="hourlyExportPickFolderBtn">📁 Choisir le dossier d'export</button>
@@ -1765,7 +1776,7 @@
                                     <div class="settings-toggle-row">
                                         <div class="toggle-text">
                                             <span class="toggle-name" data-i18n="backupMirror">Dossier secondaire (copie de sûreté)</span>
-                                            <span class="toggle-desc" id="backup-mirror-path-display" data-i18n="backupMirrorNone">Non configuré</span>
+                                            <span class="toggle-desc" id="backup-mirror-path-display">Non configuré</span>
                                         </div>
                                         <div class="toggle-buttons">
                                             <button type="button" class="btn btn-primary btn-sm" onclick="pickBackupMirrorFolder()" data-i18n="backupMirrorPickBtn">📁 Choisir</button>
@@ -1789,7 +1800,13 @@
                                     <div class="settings-info-row" style="font-size:13px;color:#16a34a;margin-top:2px;">
                                         <span data-i18n="backupShutdownStatus">🟢 Toujours active : une copie backup_SHUTDOWN est écrite à chaque fermeture normale de l'application.</span>
                                     </div>
-                                    <div class="settings-guide" style="display:none;" data-i18n="backupGuideShutdown">💡 À chaque fermeture normale de l'application, une copie nommée backup_SHUTDOWN_AAAA-MM-JJ_HH-MM.json est enregistrée dans le dossier d'export (ou sur le Bureau en dernier recours), puis répliquée dans le dossier secondaire. Aucun réglage nécessaire — ce mécanisme protège vos données en cas d'arrêt prolongé.</div>
+                                    <div class="settings-info-row" style="font-size:13px;margin-top:8px;">
+                                        <span data-i18n="shutdownDestLabel">Emplacement</span> : <span id="shutdown-dest-display" style="word-break:break-all;">…</span>
+                                    </div>
+                                    <div class="settings-info-row" style="font-size:12px;color:var(--muted,#888);margin-top:4px;">
+                                        <span data-i18n="shutdownRetentionLabel">Les 30 plus récentes sauvegardes sont conservées.</span>
+                                    </div>
+                                    <div class="settings-guide" style="display:none;" data-i18n="backupGuideShutdown">💡 À chaque fermeture normale de l'application, une copie nommée backup_SHUTDOWN_AAAA-MM-JJ_HH-MM.json est enregistrée dans le dossier « Données du POS auto » sur le Bureau. Les 30 plus récentes sauvegardes y sont conservées ; les plus anciennes sont supprimées automatiquement.</div>
                                 </div>
                             </div>
 

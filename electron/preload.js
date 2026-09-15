@@ -34,6 +34,10 @@ contextBridge.exposeInMainWorld('vollarApp', {
     // Get the user's Desktop path for fallback saves.
     getDesktopPath: () => ipcRenderer.invoke('get-desktop-path'),
 
+    // Get/create the dedicated "Données du POS auto" folder on the Desktop
+    // (used for shutdown backups).
+    getAutoBackupFolder: () => ipcRenderer.invoke('get-auto-backup-folder'),
+
     // Crash recovery: true when the previous run did not quit cleanly.
     getCrashFlag: () => ipcRenderer.invoke('get-crash-flag'),
     // Whether two paths are on the same drive/volume (backup safety warning).
