@@ -320,6 +320,17 @@
                         <span class="checkout-top-total-label" data-i18n="total">Total</span>
                         <span class="checkout-top-total-value" id="checkout-top-total">0.00 DA</span>
                     </div>
+                    <!-- BLOC: SOUS-TOTAL + REMISE (visible) -->
+                    <div class="checkout-breakdown" id="checkout-breakdown">
+                        <div class="checkout-breakdown-row" id="checkout-subtotal-row">
+                            <span data-i18n="subtotalLabel">💰 Sous-total</span>
+                            <span id="checkout-subtotal-visible">0.00 DA</span>
+                        </div>
+                        <div class="checkout-breakdown-row checkout-breakdown-discount" id="checkout-discount-visible-row" style="display:none;">
+                            <span data-i18n="discountPromo">🏷️ Remise (Promo)</span>
+                            <span id="checkout-discount-visible" style="color:var(--danger);">-0.00 DA</span>
+                        </div>
+                    </div>
                     <!-- BLOC: RÉSUMÉ DE LA TRANSACTION (legacy, masqué) -->
                     <div class="summary-block" id="block-summary" style="display:none;">
                         <div class="summary-block-title" data-i18n="transactionSummary">🧾 Résumé de la Transaction</div>
