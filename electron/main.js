@@ -10,6 +10,7 @@
 const { app, BrowserWindow, Menu, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 // Auto-update (electron-updater) — only enabled for the installed NSIS app.
 // The portable build cannot self-update (no installer to run).
@@ -126,7 +127,10 @@ function createWindow() {
         event.preventDefault();
         _quitPending = true;
 
-        const FORCE_QUIT_MS = 6000;
+        // Generous fallback: a clean quit resolves in well under a second. The
+        // longer window leaves room for the optional Telegram upload of the
+        // shutdown backup (renderer caps that upload at ~10s).
+        const FORCE_QUIT_MS = 15000;
         const timer = setTimeout(() => {
             // Renderer didn't respond in time — force quit (installing first).
             _quitPending = false;
@@ -290,6 +294,110 @@ ipcMain.handle('get-auto-backup-folder', async () => {
         console.error('get-auto-backup-folder error:', err);
         return { path: desktop };
     }
+});
+
+// === Telegram backup upload (desktop only) ===
+// The Telegram Bot API sends no CORS headers, so uploads cannot be performed
+// from the renderer — they run here in the main process (Node https). No
+// external dependency: the multipart/form-data body is built by hand.
+const TELEGRAM_TOKEN_RE = /^\d{6,}:[A-Za-z0-9_-]{20,}$/;
+
+function telegramRequest(token, method, body, contentType) {
+    return new Promise((resolve) => {
+        if (!TELEGRAM_TOKEN_RE.test(String(token || ''))) {
+            resolve({ ok: false, error: 'Invalid bot token' });
+            return;
+        }
+        const data = Buffer.isBuffer(body) ? body : Buffer.from(JSON.stringify(body || {}), 'utf8');
+        const req = https.request({
+            hostname: 'api.telegram.org',
+            path: '/bot' + token + '/' + method,
+            method: 'POST',
+            headers: {
+                'Content-Type': contentType || 'application/json',
+                'Content-Length': data.length
+            }
+        }, (res) => {
+            const chunks = [];
+            res.on('data', (c) => chunks.push(c));
+            res.on('end', () => {
+                let parsed = null;
+                try { parsed = JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch (e) { parsed = null; }
+                if (parsed && parsed.ok) resolve({ ok: true, result: parsed.result });
+                else resolve({ ok: false, error: (parsed && parsed.description) || ('HTTP ' + res.statusCode) });
+            });
+        });
+        req.on('error', (err) => resolve({ ok: false, error: err.message }));
+        req.setTimeout(30000, () => { req.destroy(new Error('Telegram timeout')); });
+        req.write(data);
+        req.end();
+    });
+}
+
+function telegramMultipart(token, chatId, fileName, content, caption) {
+    const boundary = '----SamtexTelegram' + Date.now().toString(16);
+    const CRLF = '\r\n';
+    function field(name, value) {
+        return '--' + boundary + CRLF +
+            'Content-Disposition: form-data; name="' + name + '"' + CRLF + CRLF +
+            String(value) + CRLF;
+    }
+    let pre = field('chat_id', chatId);
+    if (caption) pre += field('caption', caption);
+    pre += '--' + boundary + CRLF +
+        'Content-Disposition: form-data; name="document"; filename="' + fileName + '"' + CRLF +
+        'Content-Type: application/json' + CRLF + CRLF;
+    const post = CRLF + '--' + boundary + '--' + CRLF;
+    const body = Buffer.concat([
+        Buffer.from(pre, 'utf8'),
+        Buffer.from(String(content || ''), 'utf8'),
+        Buffer.from(post, 'utf8')
+    ]);
+    return { body, contentType: 'multipart/form-data; boundary=' + boundary };
+}
+
+ipcMain.handle('telegram-send-document', async (event, cfg) => {
+    cfg = cfg || {};
+    const fileName = String(cfg.fileName || '');
+    if (!isAllowedDataFile(fileName)) {
+        return { ok: false, error: 'Refused: file name not allowed (' + fileName + ')' };
+    }
+    const chatId = String(cfg.chatId || '').trim();
+    if (!chatId) return { ok: false, error: 'Missing chat id' };
+    const mp = telegramMultipart(cfg.token, chatId, fileName, cfg.content, cfg.caption);
+    return telegramRequest(cfg.token, 'sendDocument', mp.body, mp.contentType);
+});
+
+ipcMain.handle('telegram-test', async (event, cfg) => {
+    cfg = cfg || {};
+    const chatId = String(cfg.chatId || '').trim();
+    if (!chatId) return { ok: false, error: 'Missing chat id' };
+    return telegramRequest(cfg.token, 'sendMessage', {
+        chat_id: chatId,
+        text: '✅ SamtexChabet POS — test Telegram réussi.'
+    });
+});
+
+// Read the most recent chat that messaged the bot (used to auto-fill the chat
+// id after the user sends /start to their bot). Returns needStart when no
+// update is available yet.
+ipcMain.handle('telegram-get-chat', async (event, cfg) => {
+    cfg = cfg || {};
+    const res = await telegramRequest(cfg.token, 'getUpdates', { limit: 100, timeout: 0 });
+    if (!res.ok) return res;
+    const updates = Array.isArray(res.result) ? res.result : [];
+    for (let i = updates.length - 1; i >= 0; i--) {
+        const u = updates[i] || {};
+        const msg = u.message || u.edited_message || u.channel_post;
+        if (msg && msg.chat && msg.chat.id != null) {
+            return {
+                ok: true,
+                chatId: String(msg.chat.id),
+                title: msg.chat.title || msg.chat.username || msg.chat.first_name || ''
+            };
+        }
+    }
+    return { ok: false, error: 'No chat found', needStart: true };
 });
 
 // === Auto-update (electron-updater) ===

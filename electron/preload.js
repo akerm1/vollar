@@ -40,6 +40,14 @@ contextBridge.exposeInMainWorld('vollarApp', {
     // (used for shutdown backups).
     getAutoBackupFolder: () => ipcRenderer.invoke('get-auto-backup-folder'),
 
+    // --- Telegram backup (desktop only) ---
+    // Upload a backup_*.json file to Telegram via the main process.
+    sendTelegramDocument: (cfg) => ipcRenderer.invoke('telegram-send-document', cfg || {}),
+    // Send a test message to validate the bot token + chat id.
+    telegramTest: (cfg) => ipcRenderer.invoke('telegram-test', cfg || {}),
+    // Auto-detect the chat id from the bot's recent updates (getUpdates).
+    telegramGetChat: (cfg) => ipcRenderer.invoke('telegram-get-chat', cfg || {}),
+
     // Crash recovery: true when the previous run did not quit cleanly.
     getCrashFlag: () => ipcRenderer.invoke('get-crash-flag'),
     // Whether two paths are on the same drive/volume (backup safety warning).

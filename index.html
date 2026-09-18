@@ -1802,6 +1802,75 @@
                             <div class="settings-card">
                                 <div class="settings-card-head">
                                     <div class="settings-card-title">
+                                        <span class="settings-card-badge">📨</span>
+                                        <span data-i18n="telegramCardTitle">Sauvegarde Telegram</span>
+                                    </div>
+                                    <button type="button" class="settings-guide-btn" onclick="toggleSettingsGuide(this)" aria-label="Aide" title="Aide">?</button>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name" data-i18n="telegramToggle">Envoyer les sauvegardes sur Telegram</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="telegramEnabled" onchange="setToggle('telegramEnabled', this.checked); refreshTelegramUI()">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="settings-form-grid">
+                                        <div class="form-group full">
+                                            <label for="settings-telegram-token" data-i18n="telegramTokenLabel">Jeton du bot (BotFather)</label>
+                                            <div style="display:flex;gap:8px;">
+                                                <input type="password" id="settings-telegram-token" placeholder="123456789:ABC..." autocomplete="off" style="flex:1;" onchange="saveTelegramPrefs()">
+                                                <button type="button" class="btn btn-secondary btn-sm" onclick="var i=document.getElementById('settings-telegram-token');i.type=i.type==='password'?'text':'password';" data-i18n="telegramShow">Afficher</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group full">
+                                            <label for="settings-telegram-chat" data-i18n="telegramChatLabel">Identifiant du chat</label>
+                                            <div style="display:flex;gap:8px;">
+                                                <input type="text" id="settings-telegram-chat" placeholder="ex: 123456789" autocomplete="off" style="flex:1;" onchange="saveTelegramPrefs()">
+                                                <button type="button" class="btn btn-secondary btn-sm" onclick="telegramDetectChat()" data-i18n="telegramDetect">Détecter</button>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="settings-telegram-interval" data-i18n="telegramIntervalLabel">Intervalle d'envoi</label>
+                                            <select id="settings-telegram-interval" onchange="saveTelegramPrefs()">
+                                                <option value="0" data-i18n="telegramIntervalOff">Désactivé (fermeture uniquement)</option>
+                                                <option value="30">30 min</option>
+                                                <option value="60" selected>1 heure</option>
+                                                <option value="240">4 heures</option>
+                                                <option value="720">12 heures</option>
+                                                <option value="1440">24 heures</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="settings-toggle-row" style="margin:0;">
+                                                <div class="toggle-text">
+                                                    <span class="toggle-name" data-i18n="telegramOnClose">Envoyer à la fermeture</span>
+                                                </div>
+                                                <div class="toggle-buttons">
+                                                    <label class="toggle-label">
+                                                        <input type="checkbox" data-setting="telegramOnClose" onchange="setToggle('telegramOnClose', this.checked); refreshTelegramUI()">
+                                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="btn-row">
+                                        <button type="button" class="btn btn-primary" onclick="telegramTestConnection()" data-i18n="telegramTestBtn">🔗 Tester la connexion</button>
+                                        <button type="button" class="btn btn-success" onclick="telegramSendNow()" data-i18n="telegramSendNow">📨 Envoyer maintenant</button>
+                                    </div>
+                                    <div class="settings-info-row" id="telegram-status" style="font-size:12px;color:var(--muted,#888);margin-top:10px;"></div>
+                                    <div class="settings-guide" style="display:none;" data-i18n="telegramGuide">💡 Version bureau uniquement. Créez un bot avec @BotFather, envoyez-lui /start, collez le jeton ici puis cliquez sur « Détecter » pour récupérer l'identifiant du chat. Une sauvegarde est envoyée sur Telegram à la fermeture de l'application et à l'intervalle choisi.</div>
+                                </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
                                         <span class="settings-card-badge">🔌</span>
                                         <span data-i18n="backupShutdownCardTitle">Sauvegarde à la fermeture</span>
                                     </div>
@@ -2803,6 +2872,7 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/cart/cart-meter.js"></script>
     <script src="js/cart/cart-ops.js"></script>
     <script src="js/cart/cart-render.js"></script>
+    <script src="js/cart/cart-profit.js"></script>
     <script src="js/cart/cart-quick.js"></script>
     <script src="js/cart/fast-clients.js"></script>
     <script src="js/cart/cart-router.js"></script>
@@ -2847,6 +2917,7 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/transactions/zreport.js"></script>
     <script src="js/suppliers/suppliers.js"></script>
     <script src="js/suppliers/supplier-bills-hub.js"></script>
+    <script src="js/suppliers/name-word-suggest.js"></script>
     <script src="js/expenses/expenses.js"></script>
     <script src="js/bootstrap/app-clock.js"></script>
     <script src="js/bootstrap/app-update.js"></script>
@@ -2858,6 +2929,7 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/core/license.js"></script>
     <script src="js/bootstrap/app-bootstrap.js"></script>
     <script src="js/bootstrap/app-backup.js"></script>
+    <script src="js/bootstrap/app-telegram.js"></script>
 <script src="js/core/restore-safety.js"></script>
 
 </body>
