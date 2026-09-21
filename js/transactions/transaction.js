@@ -50,7 +50,11 @@ async function completeTransaction(isQuickCart) {
     if (!_item.variantKey && _product && !_product.linkedUnitProductId && typeof ensureUnitStockForSale === 'function') {
       try {
         var _opened = await ensureUnitStockForSale(_product, _item.qty, _openedPacks);
-        if (_opened && _opened.length) _openedPacks = _openedPacks.concat(_opened);
+        if (_opened && _opened.length) {
+          _openedPacks = _openedPacks.concat(_opened.map(function(o) {
+            return { pack: o.pack, packs: o.packs, units: o.units, unitBarcode: _product.barcode };
+          }));
+        }
       } catch(_e) { console.error('[Transaction] auto-open pack error:', _e); }
     }
     var _stock = _product.stock;
@@ -153,7 +157,10 @@ async function completeTransaction(isQuickCart) {
       grandTotal: _totals.grandTotal, totalProfit: _profit, amountPaid: _effectivePaid,
       remainingAmount: _remaining, paymentStatus: _computedStatus,
       isDebt: _needsCustomer, paymentMarked: _markedPaid ? 'paid' : 'unpaid', quickCustomerSale: _isQuick,
-      paymentMethod: _paymentData.method || 'especes', paymentDetails: _paymentData.details || {}
+      paymentMethod: _paymentData.method || 'especes', paymentDetails: _paymentData.details || {},
+      openedPacks: _openedPacks.map(function(o) {
+        return { packBarcode: o.pack && o.pack.barcode, packs: o.packs, units: o.units, unitBarcode: o.unitBarcode };
+      })
     }});
 
     if (_customerId && _needsCustomer) {
@@ -201,6 +208,7 @@ async function completeTransaction(isQuickCart) {
     if (typeof refreshAnalytics === 'function') await refreshAnalytics(); else if (typeof loadAnalytics === 'function') await loadAnalytics();
     if (currentView === 'customers') loadCustomers();
     updateLastScannedItem(null); resetScanner(); customerAskShown = false;
+    try { if (typeof refreshProductsCache === 'function') await refreshProductsCache(); } catch (e) {}
     return true;
   } catch (err) {
     console.error('Transaction error:', err); playError();
