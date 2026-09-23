@@ -418,12 +418,26 @@
                              <button class="btn btn-sm btn-success" id="btn-complete-transaction" data-i18n="completeSale">✅ Finaliser</button>
                              <button class="btn btn-sm btn-accent" id="btn-print-receipt" data-i18n="btnPrint">🖨️ Imprimer</button>
                              <button class="btn btn-sm btn-secondary" id="btn-clear-cart" data-i18n="clear">🗑 Vider</button>
-                         </div>
-                         <div class="printer-status">
-                             <span data-i18n="printer">🖨️ Imprimante:</span>
-                             <span class="status" id="printer-status" data-i18n="printerReady">✅ Prêt</span>
-                         </div>
-                     </div>
+                              <button type="button" class="btn btn-sm btn-warning" id="btn-toggle-return" data-i18n="btnReturn">↩️ Retour</button>
+                          </div>
+                          <div class="printer-status">
+                              <span data-i18n="printer">🖨️ Imprimante:</span>
+                              <span class="status" id="printer-status" data-i18n="printerReady">✅ Prêt</span>
+                          </div>
+                      </div>
+                      <!-- Return reason selector (visible when return mode is active) -->
+                      <div id="return-reason-selector" style="display:none;margin:4px 8px 0;padding:6px 10px;border:1px solid var(--warning);border-radius:var(--radius-sm);background:rgba(243,156,18,.12);color:#b7791f;font-size:13px;">
+                          <label style="font-weight:600;margin-right:6px;" data-i18n="returnReasonLabel">Motif :</label>
+                          <select id="return-reason-select" style="border-radius:4px;border:1px solid #ccc;padding:2px 6px;font-size:13px;">
+                              <option value="defective" data-i18n="returnReasonDefective">Défectueux</option>
+                              <option value="change" data-i18n="returnReasonChange">Changement</option>
+                              <option value="error" data-i18n="returnReasonError">Erreur</option>
+                              <option value="other" data-i18n="returnReasonOther">Autre</option>
+                          </select>
+                      </div>
+<!-- Banner when return mode is active -->
+                      <div id="return-mode-banner" style="display:none;margin:4px 8px 0;padding:6px 10px;border:1px solid var(--warning);border-radius:var(--radius-sm);background:rgba(243,156,18,.12);color:#b7791f;font-size:13px;font-weight:600;text-align:center;" data-i18n="returnModeHint">↩️ Mode retour actif — scannez les articles à retourner</div>
+
 
              </div>
          </section>
@@ -452,6 +466,18 @@
                     
                     <div id="categories-list" style="display:flex;flex-wrap:wrap;gap:8px;padding:8px 0;min-height:40px;">
                         <span style="color:#999;font-size:13px;" data-i18n="loadingCategories">Chargement des catégories...</span>
+                    </div>
+                </div>
+
+                <!-- RETURNS HISTORY SECTION -->
+                <div id="returns-history-panel" style="margin-top:20px;padding-top:16px;border-top:2px solid #f0f0f0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;">
+                        <h4 style="font-size:16px;color:var(--primary);margin:0;" data-i18n="returnsHistoryTitle">📋 Historique des retours</h4>
+                        <button type="button" class="btn btn-sm btn-danger" id="btn-delete-all-returns" style="padding:6px 10px;font-size:11px;" data-i18n="returnsDeleteAll">🗑 Tout supprimer</button>
+                    </div>
+                    <input type="text" id="returns-search-input" placeholder="Rechercher un retour (article, code-barres, n°...)" data-i18n-placeholder="returnsSearchPlaceholder" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #e0e0e0;border-radius:var(--radius-sm);font-size:12px;font-family:var(--font-family);margin-bottom:8px;" autocomplete="off">
+                    <div id="returns-history-list" style="max-height:320px;overflow-y:auto;font-size:12px;border:1px solid #e0e0e0;border-radius:var(--radius-sm);padding:8px;background:rgba(33,150,243,.04);min-height:60px;">
+                        <div style="text-align:center;color:#999;padding:12px;" data-i18n="loading">Chargement...</div>
                     </div>
                 </div>
             </div>
@@ -1555,6 +1581,53 @@
                                           </div>
                                       </div>
                                  </div>
+                            </div>
+
+                            <div class="settings-card">
+                                <div class="settings-card-head">
+                                    <div class="settings-card-title">
+                                        <span class="settings-card-badge">↩️</span>
+                                        Retours
+                                    </div>
+                                </div>
+                                <div class="settings-card-body">
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name">Activer les retours</span>
+                                            <span class="toggle-desc">Affiche le bouton Retour sur la caisse et permet d'enregistrer des retours</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="returnsEnabled" onchange="setToggle('returnsEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name">Ticket de retour</span>
+                                            <span class="toggle-desc">Imprime automatiquement un ticket après chaque retour</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="returnsReceiptEnabled" onchange="setToggle('returnsReceiptEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="settings-toggle-row">
+                                        <div class="toggle-text">
+                                            <span class="toggle-name">Restreindre les retours</span>
+                                            <span class="toggle-desc">Exige la permission « Gérer les retours » (hors admin)</span>
+                                        </div>
+                                        <div class="toggle-buttons">
+                                            <label class="toggle-label">
+                                                <input type="checkbox" data-setting="returnsPermissionEnabled" onchange="setToggle('returnsPermissionEnabled', this.checked)">
+                                                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="settings-card">
@@ -2916,6 +2989,7 @@ MODAL - AUDIT LOG VIEWER
     <script src="js/views/qr-code.js"></script>
     <script src="js/transactions/print.js"></script>
     <script src="js/transactions/zreport.js"></script>
+    <script src="js/transactions/returns.js"></script>
     <script src="js/suppliers/suppliers.js"></script>
     <script src="js/suppliers/supplier-bills-hub.js"></script>
     <script src="js/suppliers/name-word-suggest.js"></script>
