@@ -199,6 +199,7 @@ async function completeTransaction(isQuickCart) {
     if (typeof resetPaymentMethod === 'function') resetPaymentMethod();
     playSuccess();
     _markedPaid ? showToast(t('transactionCompleteMsg', { total: formatPrice(_totals.grandTotal), currency: settings.currency, profit: formatPrice(_profit) }), 'success') : showToast(t('debtRecordedMsg', { total: formatPrice(_totals.grandTotal), currency: settings.currency }), 'warning');
+    window.__txInProgress = false;
     if (settings.printAutoEnabled && typeof printReceipt === 'function') setTimeout(function() { printReceipt(null); }, 500);
     if (settings.autoBackupEnabled !== false) await createAutoBackup();
     if (typeof logAudit === 'function') {
